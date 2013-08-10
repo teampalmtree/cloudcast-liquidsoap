@@ -3,14 +3,14 @@
 ###########
 
 # queue file loop
-add_timeout(fast = false, !queue_file_poll_delay, poll_file)
+add_timeout(fast = false, !queue_poll_delay, poll_queue)
 
 ############
 ## INPUTS ##
 ############
 
 # input status loop
-add_timeout(fast = false, !inputs_post_delay, post_inputs)
+add_timeout(fast = false, !update_inputs_post_delay, update_inputs)
 
 ##############
 ## TRACKING ##
@@ -49,7 +49,7 @@ radio := on_blank(
 # mix in jingles during quiet (use delay here?)
 radio := add(normalize = false, [
     !radio,
-    switch([({ !quiet_detected and not !advertisement_playing and not !track_beginning and not !track_ending }, jingles)])
+    switch([({ !quiet_detected and !track_meat and not !advertisement_playing }, jingles)])
 ])
 
 ################
@@ -169,4 +169,4 @@ radio := switch(
 #############
 
 # loop over streams to create outputs
-list.iter(initialize_output, !streams)
+list.iter(initialize_stream, !streams)

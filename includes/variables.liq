@@ -6,17 +6,21 @@
 #http_json_header = ref [("Content-Type","application/json; charset=utf-8")]
 
 # URLs
-settings_uri = cloudcast_uri ^ "/settings/mapped.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
-streams_uri = cloudcast_uri ^ "/streams/active.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
-streams_statistics_uri = cloudcast_uri ^ "/streams/statistics/<stream_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
-engine_file_uri = cloudcast_uri ^ "/engine/file.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
-engine_inputs_uri = cloudcast_uri ^ "/engine/inputs.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
-engine_authenticate_uri = cloudcast_uri ^ "/engine/authenticate.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+settings_mapped_uri = cloudcast_uri ^ "/settings/mapped.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+streams_active_uri = cloudcast_uri ^ "/streams/active.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 files_genre_uri = cloudcast_uri ^ "/files/genre/<genre>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_save_stream_statistics_uri = cloudcast_uri ^ "/engine/save_stream_statistics/<stream_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_next_queue_uri = cloudcast_uri ^ "/engine/next_queue.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_play_schedule_file_uri = cloudcast_uri ^ "/engine/play_schedule_file/<schedule_file_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_update_inputs_uri = cloudcast_uri ^ "/engine/update_inputs.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_authenticate_uri = cloudcast_uri ^ "/engine/authenticate.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 
 ##############
 ## SETTINGS ##
 ##############
+
+# general
+station_name = ref ''
 
 # transitions
 transition_fade_seconds = ref 0.
@@ -54,22 +58,17 @@ talkover_quiet_threshold = ref 0.
 radio = ref audio_to_stereo(request.queue(id = 'schedule'))
 # tracks currently in queue
 queue_length = ref 0.
-# last queued file
-queue_file = ref []
+# last queued schedule file
+current_queue = ref []
 # queue poll delay
-queue_file_poll_delay = ref 5.
+queue_poll_delay = ref 5.
 
 ##############
 ## TRACKING ##
 ##############
 
 # track beginning/ending
-track_beginning = ref false
-track_ending = ref false
-
-#############
-## JINGLES ##
-#############
+track_meat = ref false
 
 # jingle parameters
 quiet_detected = ref false
@@ -85,8 +84,8 @@ streams = ref []
 ## INPUTS ##
 ############
 
-# input poll delay
-inputs_post_delay = ref 5.
+# update input poll delay
+update_inputs_post_delay = ref 5.
 
 # input buffer settings
 show_input_buffer_seconds_max = ref 80.

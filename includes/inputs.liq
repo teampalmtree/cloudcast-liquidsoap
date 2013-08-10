@@ -1,8 +1,8 @@
-#################
-## POST INPUTS ##
-#################
+###################
+## UPDATE INPUTS ##
+###################
 
-def post_inputs() =
+def update_inputs() =
 
     if
         # statuses
@@ -50,17 +50,17 @@ def post_inputs() =
         ]
 
         # post inputs
-        engine_inputs_response = http.post(
+        engine_update_inputs_response = http.post(
             data = json_of(inputs),
-            engine_inputs_uri
+            engine_update_inputs_uri
         )
 
         # ignore response
-        ignore(engine_inputs_response)
+        ignore(engine_update_inputs_response)
 
     end
 
-    !inputs_post_delay
+    !update_inputs_post_delay
 
 end
 
@@ -102,7 +102,7 @@ end
 ## INPUT SERVICE FUNCTION ##
 ############################
 
-def input_service(~protocol, ~data, ~headers, uri) =
+def enable_input(~protocol, ~data, ~headers, uri) =
 
     # get uri parts
     uri_parts = url.split(uri)
@@ -152,5 +152,5 @@ def input_service(~protocol, ~data, ~headers, uri) =
 
 end
 
-# register enable talkover service
-harbor.http.register(port = services_port, method = "GET", "/input", input_service)
+# register enable input service
+harbor.http.register(port = services_port, method = "GET", "/enable_input", enable_input)

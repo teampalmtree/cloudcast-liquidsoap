@@ -18,7 +18,8 @@ end
 def track_start_complete() =
 
     log("Tracking: Beginning Complete")
-    track_beginning := false
+    # we are in the meat of the song
+    track_meat := true
     (-1.)
 
 end
@@ -26,22 +27,20 @@ end
 def track_start(m) =
 
     log("Tracking: Beginning")
-    # update beginning status
-    track_beginning := true
-
     # send file off
-    add_timeout(fast = false, 0., post_file)
+    add_timeout(fast = false, 0., play_schedule_file)
+    # send stats off
+    add_timeout(fast = false, 0., save_stream_statistics)
+    # send out metadata updates
+    add_timeout(fast = false, 0., update_stream_metadatas)
     # call track start complete
     add_timeout(fast = false, !jingle_start_delay_seconds, track_start_complete)
-    # send stats off
-    add_timeout(fast = false, 0., post_stream_statistics)
 
 end
 
 def track_end_complete() =
 
     log("Tracking: Ending Complete")
-    track_ending := false
     (-1.)
 
 end
@@ -50,8 +49,8 @@ def track_end(t, m) =
 
     # log ending
     log("Tracking: Ending")
-    # update ending status
-    track_ending := true
+    # we are exiting the meat of the song
+    track_meat := false
 
     # if we have nothing in the queue, schedule is not active
     if

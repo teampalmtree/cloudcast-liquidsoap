@@ -29,7 +29,7 @@
 %include "includes/users.liq"
 %include "includes/queue.liq"
 %include "includes/transitions.liq"
+%include "includes/streams.liq"
 %include "includes/tracking.liq"
 %include "includes/inputs.liq"
-%include "includes/outputs.liq"
 %include "includes/radio.liq"

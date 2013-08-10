@@ -149,7 +149,7 @@ def song_transition(power_a, power_b, song_a, song_b) =
         log("Transitions: Song: End/Sweeper/Begin")
         sequence([
             song_a,
-            once(sweepers),
+            sweepers,
             song_b
         ])
 

@@ -16,7 +16,7 @@ string.replace(pattern = '":null',
 end
 
 ###########################
-## SERVICE AUTHROIZATION ##
+## SERVICE AUTHORIZATION ##
 ###########################
 
 def authorized_uri(uri_parts) =
@@ -32,7 +32,7 @@ end
 ## RESTART FUNCTION ##
 ######################
 
-def restart_service(~protocol, ~data, ~headers, uri) =
+def restart(~protocol, ~data, ~headers, uri) =
 
     # get uri parts
     uri_parts = url.split(uri)
@@ -62,4 +62,4 @@ def restart_service(~protocol, ~data, ~headers, uri) =
 end
 
 # register restart service
-harbor.http.register(port = services_port, method = "GET", "/restart", restart_service)
+harbor.http.register(port = services_port, method = "GET", "/restart", restart)

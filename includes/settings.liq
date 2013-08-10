@@ -5,9 +5,9 @@
 def get_settings() =
 
     # make a http request to the engine
-    settings_response = http.get(settings_uri)
-    settings_response_data = snd(settings_response)
-    settings_json = safe_json(settings_response_data)
+    settings_mapped_response = http.get(settings_mapped_uri)
+    settings_mapped_response_data = snd(settings_mapped_response)
+    settings_json = safe_json(settings_mapped_response_data)
     of_json(default = [('error', 'fail')], settings_json)
 
 end
@@ -17,7 +17,10 @@ def set_settings(settings) =
     ##################
     ## SET SETTINGS ##
     ##################
-    
+
+    # general
+    station_name := settings['station_name']
+
     # transitions
     transition_fade_seconds := float_of_string(settings['transition_fade_seconds'])
     transition_seconds := float_of_string(settings['transition_seconds'])
@@ -49,6 +52,9 @@ def set_settings(settings) =
     ##################
     ## LOG SETTINGS ##
     ##################
+
+    # transitions
+    log('Settings: station_name = ' ^ string_of(!station_name))
 
     # transitions
     log('Settings: transition_fade_seconds = ' ^ string_of(!transition_fade_seconds))
