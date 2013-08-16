@@ -8,6 +8,8 @@ sweepers_url = string.replace(pattern = '<genre>', fun(s) -> 'Sweeper', files_ge
 sweepers = audio_to_stereo(
     playlist(
         id = 'sweepers',
+        conservative = true,
+        default_duration = 1.,
         mime_type = 'audio/mpegurl',
         sweepers_url
     )
@@ -23,6 +25,8 @@ jingles_url = string.replace(pattern = '<genre>', fun(s) -> 'Jingle', files_genr
 jingles = audio_to_stereo(
     playlist(
         id = 'jingles',
+        conservative = true,
+        default_duration = 1.,
         mime_type = 'audio/mpegurl',
         jingles_url
     )
@@ -38,6 +42,8 @@ bumpers_url = string.replace(pattern = '<genre>', fun(s) -> 'Bumper', files_genr
 bumpers = audio_to_stereo(
     playlist(
         id = 'bumpers',
+        conservative = true,
+        default_duration = 1.,
         mime_type = 'audio/mpegurl',
         bumpers_url
     )

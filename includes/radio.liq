@@ -89,8 +89,9 @@ talkover_input = mksafe(
     )
 )
 
-# skip blanks on the talkover input
-talkover_input = strip_blank(
+# eat blanks on the talkover input
+talkover_input = eat_blank(
+    at_beginning = false,
     track_sensitive = false,
     threshold = !talkover_quiet_threshold,
     max_blank = !talkover_quiet_seconds,
