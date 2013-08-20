@@ -29,29 +29,6 @@ transition_inhibit = !transition_seconds * 2.
 # crossfading
 radio := smart_cross(conservative = true, width = !transition_width_seconds, duration = !transition_seconds, inhibit = transition_inhibit, transition, !radio)
 
-#############
-## JINGLES ##
-#############
-
-# add jingles end function
-jingles = on_end(delay = 1., jingle_end, jingles)
-# quiet detection
-radio := on_blank(
-    track_sensitive = true,
-    threshold = !jingle_quiet_threshold,
-    max_blank = !jingle_quiet_seconds,
-    min_noise = !jingle_noise_seconds,
-    on_noise = quiet_off,
-    quiet_on,
-    !radio
-)
-
-# mix in jingles during quiet (use delay here?)
-radio := add(normalize = false, [
-    !radio,
-    switch([({ !quiet_detected and !track_meat and not !advertisement_playing }, jingles)])
-])
-
 ################
 ## SHOW INPUT ##
 ################
@@ -75,23 +52,21 @@ show_input = mksafe(
 ####################
 
 # create talkover input
-talkover_input = mksafe(
-    audio_to_stereo(
-        input.harbor(id="talkover_input",
-            port = !talkover_input_port,
-            auth = authorize_talkover_user,
-            buffer = !talkover_input_buffer_seconds,
-            max = !talkover_input_buffer_seconds_max,
-            on_connect = talkover_input_connect,
-            on_disconnect = talkover_input_disconnect,
-            'talkover'
-        )
+talkover_input =
+audio_to_stereo(
+    input.harbor(id="talkover_input",
+        port = !talkover_input_port,
+        auth = authorize_talkover_user,
+        buffer = !talkover_input_buffer_seconds,
+        max = !talkover_input_buffer_seconds_max,
+        on_connect = talkover_input_connect,
+        on_disconnect = talkover_input_disconnect,
+        'talkover'
     )
 )
 
 # eat blanks on the talkover input
-talkover_input = eat_blank(
-    at_beginning = false,
+talkover_input = strip_blank(
     track_sensitive = false,
     threshold = !talkover_quiet_threshold,
     max_blank = !talkover_quiet_seconds,
@@ -116,6 +91,33 @@ master_input = mksafe(
         )
     )
 )
+
+#############
+## JINGLES ##
+#############
+
+# add jingles end function
+jingles = on_end(delay = 1., jingle_end, jingles)
+# quiet detection
+radio := on_blank(
+    track_sensitive = true,
+    threshold = !jingle_quiet_threshold,
+    max_blank = !jingle_quiet_seconds,
+    min_noise = !jingle_noise_seconds,
+    on_noise = quiet_off,
+    quiet_on,
+    !radio
+)
+
+# mix in jingles when:
+# - detect quiet
+# - are in the meat of a song
+# - are not playing ads
+# - someone is not talking over
+radio := add(normalize = false, [
+    !radio,
+    switch([({ !quiet_detected and !track_meat and not !advertisement_playing and not source.is_ready(talkover_input) }, jingles)])
+])
 
 ##########################
 ## HOOK INPUTS TOGETHER ##

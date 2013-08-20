@@ -73,6 +73,7 @@ def show_input_connect(header) =
     log('Inputs: Show Connected')
     show_input_status := true
 end
+
 def show_input_disconnect() =
     show_input_status := false
     show_input_username := ''
@@ -80,11 +81,16 @@ end
 
 # talkover input
 def talkover_input_connect(header) =
-    log('Inputs: Talkover Connected')
+    log('Inputs: Talkover Connected, Enabled')
     talkover_input_status := true
+    # enable input upon connection
+    talkover_input_enabled := true
 end
+
 def talkover_input_disconnect() =
     talkover_input_status := false
+    # disable input upon disconnection
+    talkover_input_enabled := false
     talkover_input_username := ''
 end
 
@@ -93,6 +99,7 @@ def master_input_connect(header) =
     log('Inputs: Master Connected')
     master_input_status := true
 end
+
 def master_input_disconnect() =
     master_input_status := false
     master_input_username := ''

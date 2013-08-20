@@ -89,8 +89,8 @@ update_inputs_post_delay = ref 5.
 
 # input buffer settings
 show_input_buffer_seconds_max = ref 80.
-talkover_input_buffer_seconds = ref 10.
-talkover_input_buffer_seconds_max = ref 20.
+talkover_input_buffer_seconds = ref 2.
+talkover_input_buffer_seconds_max = ref 5.
 
 # current input statuses
 schedule_input_status = ref false
