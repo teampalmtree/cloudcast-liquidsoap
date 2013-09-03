@@ -147,10 +147,11 @@ def song_transition(power_a, power_b, song_a, song_b) =
         # or the difference between them is too large and overlapping would
         # completely mask one of them.
         log("Transitions: Song: End/Sweeper/Begin")
-        sequence([
-            song_a,
-            sweepers,
-            song_b
+        # throw a sweeper in between
+        add(normalize = false, [
+            song_fade_out(song_a),
+            delay(initial = true, 1.0, once(sweepers)),
+            delay(initial = true, 2.0, song_fade_in(song_b))
         ])
 
     end
