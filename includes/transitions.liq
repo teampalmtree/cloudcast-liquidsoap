@@ -138,9 +138,9 @@ def song_transition(power_a, power_b, song_a, song_b) =
     # A good idea is to use a sweeper to separate the two tracks,
     # but that's another story.
 
-    ####################################
-    ## FADE OUT A, SWEEPER, FADE IN B ##
-    ####################################
+    ######################################
+    ## FADE OUT A + SWEEPER + FADE IN B ##
+    ######################################
 
     else
         # Otherwise, A and B are just too loud to overlap nicely,
@@ -150,8 +150,8 @@ def song_transition(power_a, power_b, song_a, song_b) =
         # throw a sweeper in between
         add(normalize = false, [
             song_fade_out(song_a),
-            delay(initial = true, 1.0, once(sweepers)),
-            delay(initial = true, 2.0, song_fade_in(song_b))
+            delay(initial = true, !transition_fade_seconds / 2., once(sweepers)),
+            delay(initial = true, !transition_fade_seconds, song_fade_in(song_b))
         ])
 
     end
