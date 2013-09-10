@@ -150,8 +150,8 @@ def song_transition(power_a, power_b, song_a, song_b) =
         # throw a sweeper in between
         add(normalize = false, [
             song_fade_out(song_a),
-            delay(initial = true, !transition_fade_seconds / 2., once(sweepers)),
-            delay(initial = true, !transition_fade_seconds, song_fade_in(song_b))
+            delay(!transition_fade_seconds / 3., once(sweepers)),
+            delay(!transition_fade_seconds / 2., song_fade_in(song_b))
         ])
 
     end

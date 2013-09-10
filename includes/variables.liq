@@ -107,7 +107,7 @@ server_master_input_status = ref false
 # current input enableds
 schedule_input_enabled = ref true
 show_input_enabled = ref true
-talkover_input_enabled = ref false
+talkover_input_enabled = ref true
 master_input_enabled = ref true
 
 # server state of enableds
