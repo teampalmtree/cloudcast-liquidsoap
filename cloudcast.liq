@@ -25,7 +25,7 @@
 %include "includes/helpers.liq"
 %include "includes/variables.liq"
 %include "includes/settings.liq"
-%include "includes/playlists.liq"
+%include "includes/promos.liq"
 %include "includes/users.liq"
 %include "includes/queue.liq"
 %include "includes/transitions.liq"

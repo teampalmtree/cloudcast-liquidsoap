@@ -36,7 +36,8 @@ radio := smart_cross(conservative = true, width = !transition_width_seconds, dur
 # create show input
 show_input = mksafe(
     audio_to_stereo(
-        input.harbor(id="show_input",
+        input.harbor(
+            id = "show_input",
             port = !show_input_port,
             auth = authorize_show_user,
             max = !show_input_buffer_seconds_max,
@@ -52,9 +53,9 @@ show_input = mksafe(
 ####################
 
 # create talkover input
-talkover_input =
-audio_to_stereo(
-    input.harbor(id="talkover_input",
+talkover_input = audio_to_stereo(
+    input.harbor(
+        id = "talkover_input",
         port = !talkover_input_port,
         auth = authorize_talkover_user,
         buffer = !talkover_input_buffer_seconds,
@@ -81,7 +82,8 @@ talkover_input = strip_blank(
 # create master input
 master_input = mksafe(
     audio_to_stereo(
-        input.harbor(id="master_input",
+        input.harbor(
+            id = "master_input",
             port = !master_input_port,
             auth = authorize_master_user,
             max = !show_input_buffer_seconds_max,
@@ -110,13 +112,24 @@ radio := on_blank(
 )
 
 # mix in jingles when:
+# - jingles are available (loaded)
 # - detect quiet
 # - are in the meat of a song
 # - are not playing ads
 # - someone is not talking over
 radio := add(normalize = false, [
     !radio,
-    switch([({ !quiet_detected and !track_meat and not !advertisement_playing and not source.is_ready(talkover_input) }, jingles)])
+    switch(
+        id = 'jingles_switch', [(
+        {
+            !jingles_available
+            and !quiet_detected
+            and !track_meat
+            and not !advertisement_playing
+            and not source.is_ready(talkover_input)
+        },
+        jingles
+    )])
 ])
 
 ##########################
@@ -127,8 +140,9 @@ radio := add(normalize = false, [
 silence = amplify(0.00001, noise())
 # switch radio/silence
 radio :=  switch(
-     track_sensitive = false,
-     [
+    id = 'silence_switch',
+    track_sensitive = false,
+    [
         ({ !schedule_input_status and !schedule_input_enabled }, !radio),
         ({ true }, silence)
     ]
@@ -136,9 +150,10 @@ radio :=  switch(
 
 # switch show/radio
 radio :=  switch(
-     track_sensitive = false,
-     transitions = [ input_transition, input_transition ],
-     [
+    id = 'show_switch',
+    track_sensitive = false,
+    transitions = [ input_transition, input_transition ],
+    [
         ({ !show_input_status and !show_input_enabled }, show_input),
         ({ true }, !radio)
     ]
@@ -146,6 +161,7 @@ radio :=  switch(
 
 # switch radio+talkover/radio
 radio := switch(
+    id = 'talkover_switch',
     track_sensitive = false,
     transitions = [ talkover_transition, talkover_transition ],
     [
@@ -159,6 +175,7 @@ radio := switch(
 
 # switch master/radio
 radio := switch(
+    id = 'master_switch',
     track_sensitive = false,
     transitions = [ input_transition, input_transition ],
     [

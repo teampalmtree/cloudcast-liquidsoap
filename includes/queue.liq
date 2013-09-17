@@ -1,14 +1,38 @@
-####################
-## GET NEXT QUEUE ##
-####################
+#########################
+## GET NEXT QUEUE FILE ##
+#########################
 
-def get_next_queue() =
+def get_next_queue_file() =
 
     # make a http request to the gateway
-    engine_next_queue_response = http.get(engine_next_queue_uri)
-    engine_next_queue_response_data = snd(engine_next_queue_response)
-    next_queue_json = safe_json(engine_next_queue_response_data)
-    of_json(default = [('error', 'failure')], next_queue_json)
+    engine_next_queue_file_response = http.get(engine_next_queue_file_uri)
+    engine_next_queue_file_response_data = snd(engine_next_queue_file_response)
+    next_queue_file_json = safe_json(engine_next_queue_file_response_data)
+    of_json(default = [('error', 'failure')], next_queue_file_json)
+
+end
+
+########################
+## SET QUEUE SCHEDULE ##
+########################
+
+def set_queue_schedule() =
+
+    # get current queue
+    current_queue_file = !queue_file
+
+    # get current schedule queue show uri
+    current_engine_queue_schedule_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_queue_schedule_uri)
+
+    # make a http request to the gateway
+    current_engine_queue_schedule_response = http.get(current_engine_queue_schedule_uri)
+    current_engine_queue_schedule_response_data = snd(current_engine_queue_schedule_response)
+    queue_schedule_json = safe_json(current_engine_queue_schedule_response_data)
+    # set queue schedule
+    queue_schedule := of_json(default = [('error', 'failure')], queue_schedule_json)
+
+    # load the promos for this schedule
+    load_promos()
 
 end
 
@@ -20,26 +44,48 @@ end
 def poll_queue() =
 
     if
-        !queue_length == 0.
+        # see if the queue is ready (for a new file)
+        !queue_file_ready
     then
 
         # get queue
-        next_queue = get_next_queue()
+        next_queue_file = get_next_queue_file()
 
         if
             # determine request to generate
-            next_queue['error'] != "failure"
+            next_queue_file['error'] != "failure"
         then
 
-            # set queue to next
-            current_queue := next_queue
-            # push file name to server queue
-            ignore(server.execute("schedule.push #{next_queue['file_name']}"))
-            # log file queued
-            log("Queue: Added #{next_queue['file_name']}")
+            ###############################
+            ## SCHEDULE CHANGE DETECTION ##
+            ###############################
 
-            # up queue length (this will satisfy the queue for now)
-            queue_length := !queue_length + 1.
+            # get current queue
+            current_queue_file = !queue_file
+
+            if
+                # see if this is a schedule change
+                current_queue_file == []
+                or current_queue_file['schedule_id'] != next_queue_file['schedule_id']
+            then
+
+                # flag the schedule change
+                queue_schedule_changed := true
+
+            end
+
+            ##################
+            ## QUEUE UPDATE ##
+            ##################
+
+            # set queue to next
+            queue_file := next_queue_file
+            # push file name to server queue
+            ignore(server.execute("schedule.push #{next_queue_file['file_name']}"))
+            # log file queued
+            log("Queue: Added #{next_queue_file['file_name']}")
+            # the queue is satisfied
+            queue_file_ready := false
             # update schedule input status
             schedule_input_status := true
 
@@ -57,18 +103,43 @@ end
 
 def play_schedule_file() =
 
+    #####################################
+    ## NOTIFY CC OF SCHEDULE FILE PLAY ##
+    #####################################
+
     # get current queue
-    queue = !current_queue
+    current_queue_file = !queue_file
     # generate play schedule file url
     current_engine_play_schedule_file_uri
-        = string.replace(pattern = '<schedule_file_id>', fun(s) -> queue['schedule_file_id'], engine_play_schedule_file_uri)
+        = string.replace(pattern = '<schedule_file_id>', fun(s) -> current_queue_file['schedule_file_id'], engine_play_schedule_file_uri)
     # post metadata
     engine_play_schedule_file_response = http.get(current_engine_play_schedule_file_uri)
     # ignore response
     ignore(engine_play_schedule_file_response)
-    # end metadata wait (will cause the queue to get another file)
-    queue_length := !queue_length - 1.
-    # don't repeat
-    (-1.)
+
+    ########################################
+    ## IF SCHEDULE CHANGE, SET QUEUE SHOW ##
+    ########################################
+
+    if
+        # if the queue has determined that there is a schedule change
+        !queue_schedule_changed
+    then
+
+        # log schedule change
+        log("Queue: Schedule Changed")
+        # set queue schedule
+        set_queue_schedule()
+        # reset schedule change flag
+        queue_schedule_changed := false
+
+    end
+
+    ######################
+    ## QUEUE FILE READY ##
+    ######################
+
+    # que is ready for another file
+    queue_file_ready := true
 
 end

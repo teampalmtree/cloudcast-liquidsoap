@@ -8,10 +8,23 @@ log = log(label = "CloudCast", level = 2)
 # produce safe JSON
 def safe_json(s) =
 
-# get non-null json strings
-string.replace(pattern = '":null',
-    fun(s) -> string.replace(pattern = 'null',
-        fun(s) -> '"null"', s), s)
+    # get non-null json strings
+    s = string.replace(pattern = '":null',
+        fun(s) -> string.replace(pattern = 'null',
+            fun(s) -> '"null"', s), s)
+
+    # get non-true json strings
+    s = string.replace(pattern = '":true',
+        fun(s) -> string.replace(pattern = 'true',
+            fun(s) -> '"true"', s), s)
+
+    # get non-false json strings
+    s = string.replace(pattern = '":false',
+        fun(s) -> string.replace(pattern = 'false',
+            fun(s) -> '"false"', s), s)
+
+    # success
+    s
 
 end
 

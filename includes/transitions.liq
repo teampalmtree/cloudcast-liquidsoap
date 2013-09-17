@@ -59,14 +59,34 @@ def ad_song_transition(song_a, song_b) =
 
     # log transition
     log("Transitions: Ad-Song")
-    # bring back the music with bumper
-    sequence([
-        song_a,
-        add(normalize = false, [
-            delay(initial = true, 1.0, once(bumpers)),
+
+    if
+        # make sure bumpers are available
+        !bumpers_available
+    then
+
+        # bring back the music with bumper
+        sequence([
+            song_a,
+            add(normalize = false, [
+                sequence([
+                    blank(duration = 1.),
+                    once(bumpers),
+                    fallback([])
+                ]),
+                song_fade_in(song_b)
+            ])
+        ])
+
+    else
+
+        # finish the ad, fade in b
+        sequence([
+            song_a,
             song_fade_in(song_b)
         ])
-    ])
+
+    end
 
 end
 
@@ -148,11 +168,34 @@ def song_transition(power_a, power_b, song_a, song_b) =
         # completely mask one of them.
         log("Transitions: Song: End/Sweeper/Begin")
         # throw a sweeper in between
-        add(normalize = false, [
-            song_fade_out(song_a),
-            delay(!transition_fade_seconds / 3., once(sweepers)),
-            delay(!transition_fade_seconds / 2., song_fade_in(song_b))
-        ])
+
+        if
+            # make sure we have sweepers
+            !sweepers_available
+        then
+
+            # fade out a, half way through bringing in
+            # sweeper and b
+            add(normalize = false, [
+                song_fade_out(song_a),
+                sequence([
+                    blank(duration = !transition_fade_seconds / 2.),
+                    once(sweepers),
+                    fallback([])
+                ]),
+                sequence([
+                    blank(duration = !transition_fade_seconds / 2.),
+                    song_fade_in(song_b)
+                ])
+
+            ])
+
+        else
+
+            # just play a and b back to back
+            sequence([song_a, song_b])
+
+        end
 
     end
 

@@ -60,8 +60,6 @@ def save_stream_statistics() =
 
     # loop stats for each stream
     list.iter(save_stream_statistic, !streams)
-    # don't repeat
-    (-1.)
 
 end
 
@@ -77,9 +75,9 @@ def update_stream_metadata(stream) =
     then
 
         # get file
-        queue = !current_queue
+        current_queue_file = !queue_file
         # create metadata
-        metadata = [('song', queue['file_artist'] ^ ' - ' ^ queue['file_title'])]
+        metadata = [('song', current_queue_file['file_artist'] ^ ' - ' ^ current_queue_file['file_title'])]
         # send metadata packet to stream
         icy.update_metadata(
             host = stream['host'],
@@ -98,7 +96,5 @@ def update_stream_metadatas() =
 
     # loop metadata update for each stream
     list.iter(update_stream_metadata, !streams)
-    # don't repeat
-    (-1.)
 
 end

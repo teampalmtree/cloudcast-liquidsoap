@@ -8,9 +8,15 @@
 # URLs
 settings_mapped_uri = cloudcast_uri ^ "/settings/mapped.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 streams_active_uri = cloudcast_uri ^ "/streams/active.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
-files_genre_uri = cloudcast_uri ^ "/files/genre/<genre>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+files_sweepers_uri = cloudcast_uri ^ "/files/sweepers.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+files_jingles_uri = cloudcast_uri ^ "/files/jingles.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+files_bumpers_uri = cloudcast_uri ^ "/files/bumpers.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_queue_schedule_uri = cloudcast_uri ^ "/engine/queue_schedule/<schedule_id>.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_schedule_sweepers_uri = cloudcast_uri ^ "/engine/schedule_sweepers/<schedule_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_schedule_jingles_uri = cloudcast_uri ^ "/engine/schedule_jingles/<schedule_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_schedule_bumpers_uri = cloudcast_uri ^ "/engine/schedule_bumpers/<schedule_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 engine_save_stream_statistics_uri = cloudcast_uri ^ "/engine/save_stream_statistics/<stream_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
-engine_next_queue_uri = cloudcast_uri ^ "/engine/next_queue.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_next_queue_file_uri = cloudcast_uri ^ "/engine/next_queue_file.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 engine_play_schedule_file_uri = cloudcast_uri ^ "/engine/play_schedule_file/<schedule_file_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 engine_update_inputs_uri = cloudcast_uri ^ "/engine/update_inputs.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 engine_authenticate_uri = cloudcast_uri ^ "/engine/authenticate.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
@@ -56,12 +62,37 @@ talkover_quiet_threshold = ref 0.
 
 # create server queue to manage upcoming tracks
 radio = ref audio_to_stereo(request.queue(id = 'schedule'))
-# tracks currently in queue
-queue_length = ref 0.
 # last queued schedule file
-current_queue = ref []
+queue_file = ref []
+# true is the queue can accept another file
+queue_file_ready = ref true
+# current schedule for this queue
+queue_schedule = ref []
+# queue to queue schedule change detected
+queue_schedule_changed = ref false
 # queue poll delay
 queue_poll_delay = ref 5.
+
+############
+## PROMOS ##
+############
+
+# promo availability
+sweepers_available = ref false
+jingles_available = ref false
+bumpers_available = ref false
+# sweepers playlist
+sweepers_playlist = playlist.reloadable(id = 'sweepers', random = true, files_sweepers_uri)
+sweepers_reload = fst(sweepers_playlist)
+sweepers = audio_to_stereo(snd(sweepers_playlist))
+# jingles playlist
+jingles_playlist = playlist.reloadable(id = 'jingles', random = true, files_jingles_uri)
+jingles_reload = fst(jingles_playlist)
+jingles = audio_to_stereo(snd(jingles_playlist))
+# bumpers playlist
+bumpers_playlist = playlist.reloadable(id = 'bumpers', random = true, files_bumpers_uri)
+bumpers_reload = fst(bumpers_playlist)
+bumpers = audio_to_stereo(snd(bumpers_playlist))
 
 ##############
 ## TRACKING ##
