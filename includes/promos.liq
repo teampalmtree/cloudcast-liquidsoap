@@ -4,6 +4,8 @@
 
 def load_promos() =
 
+    # get current queue file
+    current_queue_file = !queue_file
     # get current queue schedule
     current_queue_schedule = !queue_schedule
 
@@ -18,7 +20,7 @@ def load_promos() =
         # set sweepers available
         sweepers_available := true
         # get sweepers playlist url
-        current_engine_schedule_sweepers_uri = string.replace(pattern = '<show_id>', fun(s) -> current_queue_schedule['show_id'], engine_schedule_sweepers_uri)
+        current_engine_schedule_sweepers_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_schedule_sweepers_uri)
         # load sweepers playlist
         sweepers_reload(uri = current_engine_schedule_sweepers_uri)
 
@@ -40,7 +42,7 @@ def load_promos() =
         # set jingles available
         jingles_available := true
         # get jingles playlist url
-        current_engine_schedule_jingles_uri = string.replace(pattern = '<show_id>', fun(s) -> current_queue_schedule['show_id'], engine_schedule_jingles_uri)
+        current_engine_schedule_jingles_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_schedule_jingles_uri)
         # load jingles playlist
         jingles_reload(uri = current_engine_schedule_jingles_uri)
 
@@ -62,7 +64,7 @@ def load_promos() =
         # set bumpers available
         bumpers_available := true
         # get bumpers playlist url
-        current_engine_schedule_bumpers_uri = string.replace(pattern = '<show_id>', fun(s) -> current_queue_schedule['show_id'], engine_schedule_bumpers_uri)
+        current_engine_schedule_bumpers_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_schedule_bumpers_uri)
         # load bumpers playlist
         bumpers_reload(uri = current_engine_schedule_bumpers_uri)
 
