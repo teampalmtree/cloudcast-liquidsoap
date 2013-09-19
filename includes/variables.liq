@@ -42,6 +42,7 @@ jingle_quiet_seconds = ref 0.
 jingle_noise_seconds = ref 0.
 jingle_start_delay_seconds = ref 0.
 jingle_end_padding_seconds = ref 0.
+jingle_ready_delay_seconds = ref 0.
 
 # inputs
 show_input_port = ref 0
@@ -100,10 +101,10 @@ bumpers = audio_to_stereo(snd(bumpers_playlist))
 
 # track beginning/ending
 track_meat = ref false
-
 # jingle parameters
 quiet_detected = ref false
 advertisement_playing = ref false
+jingles_ready = ref true
 
 #############
 ## STREAMS ##

@@ -29,9 +29,9 @@ def track_start_process() =
     # mark schedule file played
     play_schedule_file()
     # save stream stats
-    #save_stream_statistics()
+    save_stream_statistics()
     # update stream metadatas
-    #update_stream_metadatas()
+    update_stream_metadatas()
     # don't repeat
     (-1.)
 
@@ -48,10 +48,8 @@ def track_start(m) =
 end
 
 def track_end_complete() =
-
     log("Tracking: Ending Complete")
     (-1.)
-
 end
 
 def track_end(t, m) =
@@ -67,6 +65,20 @@ def track_end(t, m) =
 
 end
 
+def jingle_ready() =
+    # allow a jingle to occur now that the timeout has expired
+    jingles_ready := true
+    log("Tracking: Jingles Ready")
+    (-1.)
+end
+
 def jingle_end(r, m)
+
+    # remove quiet detected flag as we are just going to play one
     quiet_detected := false
+    # prevent this jingle from happening again to soon
+    jingles_ready := false
+    # call track end complete
+    add_timeout(fast = false, !jingle_ready_delay_seconds, jingle_ready)
+
 end

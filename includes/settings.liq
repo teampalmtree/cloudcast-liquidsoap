@@ -35,6 +35,7 @@ def set_settings(settings) =
     jingle_noise_seconds := float_of_string(settings['jingle_noise_seconds'])
     jingle_start_delay_seconds := float_of_string(settings['jingle_start_delay_seconds'])
     jingle_end_padding_seconds := float_of_string(settings['jingle_end_padding_seconds'])
+    jingle_ready_delay_seconds := float_of_string(settings['jingle_ready_delay_seconds'])
 
     # inputs
     show_input_port := int_of_string(settings['show_input_port'])
@@ -70,6 +71,7 @@ def set_settings(settings) =
     log('Settings: jingle_noise_seconds = ' ^ string_of(!jingle_noise_seconds))
     log('Settings: jingle_start_delay_seconds = ' ^ string_of(!jingle_start_delay_seconds))
     log('Settings: jingle_end_padding_seconds = ' ^ string_of(!jingle_end_padding_seconds))
+    log('Settings: jingle_ready_delay_seconds = ' ^ string_of(!jingle_ready_delay_seconds))
 
     # inputs
     log('Settings: show_input_port = ' ^ string_of(!show_input_port))
