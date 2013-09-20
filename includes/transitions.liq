@@ -63,6 +63,8 @@ def ad_song_transition(song_a, song_b) =
     if
         # make sure bumpers are available
         !bumpers_available
+        # and we don't have (talkover input & enabled)
+        and not (!talkover_input_status and !talkover_input_enabled)
     then
 
         # bring back the music with bumper
@@ -172,6 +174,8 @@ def song_transition(power_a, power_b, song_a, song_b) =
         if
             # make sure we have sweepers
             !sweepers_available
+            # and we don't have (talkover input & enabled)
+            and not (!talkover_input_status and !talkover_input_enabled)
         then
 
             # fade out a, half way through bringing in

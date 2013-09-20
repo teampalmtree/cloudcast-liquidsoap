@@ -74,8 +74,6 @@ end
 
 def jingle_end(r, m)
 
-    # remove quiet detected flag as we are just going to play one
-    quiet_detected := false
     # prevent this jingle from happening again to soon
     jingles_ready := false
     # call track end complete

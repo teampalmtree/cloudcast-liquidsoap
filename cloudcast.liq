@@ -23,6 +23,7 @@
 
 %include "includes/config.liq"
 %include "includes/helpers.liq"
+%include "includes/promolist.liq"
 %include "includes/variables.liq"
 %include "includes/settings.liq"
 %include "includes/promos.liq"

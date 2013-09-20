@@ -22,7 +22,7 @@ def load_promos() =
         # get sweepers playlist url
         current_engine_schedule_sweepers_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_schedule_sweepers_uri)
         # load sweepers playlist
-        sweepers_reload(uri = current_engine_schedule_sweepers_uri)
+        sweepers_reload(current_engine_schedule_sweepers_uri)
 
     else
 
@@ -44,7 +44,7 @@ def load_promos() =
         # get jingles playlist url
         current_engine_schedule_jingles_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_schedule_jingles_uri)
         # load jingles playlist
-        jingles_reload(uri = current_engine_schedule_jingles_uri)
+        jingles_reload(current_engine_schedule_jingles_uri)
 
     else
 
@@ -66,7 +66,7 @@ def load_promos() =
         # get bumpers playlist url
         current_engine_schedule_bumpers_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_schedule_bumpers_uri)
         # load bumpers playlist
-        bumpers_reload(uri = current_engine_schedule_bumpers_uri)
+        bumpers_reload(current_engine_schedule_bumpers_uri)
 
     else
 

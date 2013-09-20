@@ -117,21 +117,20 @@ radio := on_blank(
 # - are in the meat of a song
 # - have not occurred in a while (ready)
 # - are not playing ads
-# - someone is not talking over
+# - and we don't have (talkover input & enabled)
 radio := add(normalize = false, [
     !radio,
     switch(
-        id = 'jingles_switch',
-        track_sensitive = false, [(
+        id = 'jingles_switch', [(
         {
             !jingles_available
             and !quiet_detected
             and !track_meat
             and !jingles_ready
-            and not !advertisement_playing
-            and not source.is_ready(talkover_input)
+            and not !restricted_playing
+            and not (!talkover_input_status and !talkover_input_enabled)
         },
-        jingles
+        once(jingles)
     )])
 ])
 

@@ -83,15 +83,15 @@ sweepers_available = ref false
 jingles_available = ref false
 bumpers_available = ref false
 # sweepers playlist
-sweepers_playlist = playlist.reloadable(id = 'sweepers', random = true, files_sweepers_uri)
+sweepers_playlist = promolist(id = 'sweepers', files_sweepers_uri)
 sweepers_reload = fst(sweepers_playlist)
 sweepers = audio_to_stereo(snd(sweepers_playlist))
 # jingles playlist
-jingles_playlist = playlist.reloadable(id = 'jingles', random = true, files_jingles_uri)
+jingles_playlist = promolist(id = 'jingles', files_jingles_uri)
 jingles_reload = fst(jingles_playlist)
 jingles = audio_to_stereo(snd(jingles_playlist))
 # bumpers playlist
-bumpers_playlist = playlist.reloadable(id = 'bumpers', random = true, files_bumpers_uri)
+bumpers_playlist = promolist(id = 'bumpers', files_bumpers_uri)
 bumpers_reload = fst(bumpers_playlist)
 bumpers = audio_to_stereo(snd(bumpers_playlist))
 
@@ -103,7 +103,7 @@ bumpers = audio_to_stereo(snd(bumpers_playlist))
 track_meat = ref false
 # jingle parameters
 quiet_detected = ref false
-advertisement_playing = ref false
+restricted_playing = ref false
 jingles_ready = ref true
 
 #############
