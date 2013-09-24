@@ -62,7 +62,7 @@ talkover_quiet_threshold = ref 0.
 ###########
 
 # create server queue to manage upcoming tracks
-radio = ref audio_to_stereo(request.queue(id = 'schedule'))
+radio = ref mksafe(audio_to_stereo(request.queue(id = 'schedule', length = 0.5)))
 # last queued schedule file
 queue_file = ref []
 # true is the queue can accept another file
@@ -94,6 +94,9 @@ jingles = audio_to_stereo(snd(jingles_playlist))
 bumpers_playlist = promolist(id = 'bumpers', files_bumpers_uri)
 bumpers_reload = fst(bumpers_playlist)
 bumpers = audio_to_stereo(snd(bumpers_playlist))
+# sweeper interval
+sweeper_interval = ref 0
+sweeper_file_count = ref 1
 
 ##############
 ## TRACKING ##
@@ -120,9 +123,8 @@ streams = ref []
 update_inputs_post_delay = ref 5.
 
 # input buffer settings
-show_input_buffer_seconds_max = ref 80.
-talkover_input_buffer_seconds = ref 2.
-talkover_input_buffer_seconds_max = ref 5.
+input_buffer_seconds = ref 2.
+input_buffer_seconds_max = ref 40.
 
 # current input statuses
 schedule_input_status = ref false
@@ -157,3 +159,6 @@ master_input_username = ref ''
 server_show_input_username = ref ''
 server_talkover_input_username = ref ''
 server_master_input_username = ref ''
+
+# talkober input active
+talkover_input_active = ref false

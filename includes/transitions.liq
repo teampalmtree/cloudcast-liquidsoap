@@ -92,6 +92,44 @@ def ad_song_transition(song_a, song_b) =
 
 end
 
+#############################
+## SWEEPER SONG TRANSITION ##
+#############################
+
+def sweeper_song_transition(song_a, song_b) =
+
+    if
+        # make sure we have sweepers
+        !sweepers_available
+        # and we don't have (talkover input & enabled)
+        and not (!talkover_input_status and !talkover_input_enabled)
+    then
+
+        # fade out a, half way through bringing in
+        # sweeper and b
+        add(normalize = false, [
+            song_fade_out(song_a),
+            sequence([
+                blank(duration = !transition_fade_seconds / 2.),
+                once(sweepers),
+                fallback([])
+            ]),
+            sequence([
+                blank(duration = !transition_fade_seconds / 2.),
+                song_fade_in(song_b)
+            ])
+
+        ])
+
+    else
+
+        # just play a and b back to back
+        sequence([song_a, song_b])
+
+    end
+
+end
+
 #####################
 ## SONG TRANSITION ##
 #####################
@@ -170,36 +208,7 @@ def song_transition(power_a, power_b, song_a, song_b) =
         # completely mask one of them.
         log("Transitions: Song: End/Sweeper/Begin")
         # throw a sweeper in between
-
-        if
-            # make sure we have sweepers
-            !sweepers_available
-            # and we don't have (talkover input & enabled)
-            and not (!talkover_input_status and !talkover_input_enabled)
-        then
-
-            # fade out a, half way through bringing in
-            # sweeper and b
-            add(normalize = false, [
-                song_fade_out(song_a),
-                sequence([
-                    blank(duration = !transition_fade_seconds / 2.),
-                    once(sweepers),
-                    fallback([])
-                ]),
-                sequence([
-                    blank(duration = !transition_fade_seconds / 2.),
-                    song_fade_in(song_b)
-                ])
-
-            ])
-
-        else
-
-            # just play a and b back to back
-            sequence([song_a, song_b])
-
-        end
+        sweeper_song_transition(song_a, song_b)
 
     end
 
@@ -224,7 +233,29 @@ def transition(power_a, power_b, meta_a, meta_b, song_a, song_b)
     elsif ad_a and not ad_b then
         ad_song_transition(song_a, song_b)
     else
-        song_transition(power_a, power_b, song_a, song_b)
+
+        # see if our sweeper interval is zero (automatic sweepers)
+        if !sweeper_interval == 0 then
+            song_transition(power_a, power_b, song_a, song_b)
+        else
+
+            # if we aren't fully automated, force a sweeper when it is our turn
+            if !sweeper_file_count == !sweeper_interval then
+
+                # reset sweeper file count
+                sweeper_file_count := 1
+                sweeper_song_transition(song_a, song_b)
+
+            else
+
+                # increment sweeper file count
+                sweeper_file_count := !sweeper_file_count + 1
+                song_transition(power_a, power_b, song_a, song_b)
+
+            end
+
+        end
+
     end
 
 end

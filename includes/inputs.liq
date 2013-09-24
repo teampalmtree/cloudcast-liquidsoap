@@ -104,6 +104,20 @@ def master_input_disconnect() =
     master_input_username := ''
 end
 
+###############################
+## TALKOVER ACTIVE FUNCTIONS ##
+###############################
+
+def activate_talkover_input() =
+    talkover_input_active := true
+    log('Inputs: Talkover Detected')
+end
+
+def deactivate_talkover_input() =
+    talkover_input_active := false
+    log('Inputs: Talkover Ended')
+end
+
 ############################
 ## INPUT SERVICE FUNCTION ##
 ############################

@@ -5,10 +5,18 @@
 def get_next_queue_file() =
 
     # make a http request to the gateway
-    engine_next_queue_file_response = http.get(engine_next_queue_file_uri)
+    engine_next_queue_file_response = http.get(timeout = 5., engine_next_queue_file_uri)
     engine_next_queue_file_response_data = snd(engine_next_queue_file_response)
     next_queue_file_json = safe_json(engine_next_queue_file_response_data)
-    of_json(default = [('error', 'failure')], next_queue_file_json)
+
+    if
+        # check for none
+        next_queue_file_json == '"NONE"'
+    then
+        [('error', 'failure')]
+    else
+        of_json(default = [('error', 'failure')], next_queue_file_json)
+    end
 
 end
 
@@ -25,7 +33,7 @@ def set_queue_schedule() =
     current_engine_queue_schedule_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_queue_schedule_uri)
 
     # make a http request to the gateway
-    current_engine_queue_schedule_response = http.get(current_engine_queue_schedule_uri)
+    current_engine_queue_schedule_response = http.get(timeout = 5., current_engine_queue_schedule_uri)
     current_engine_queue_schedule_response_data = snd(current_engine_queue_schedule_response)
     queue_schedule_json = safe_json(current_engine_queue_schedule_response_data)
     # set queue schedule
@@ -89,10 +97,18 @@ def poll_queue() =
             # update schedule input status
             schedule_input_status := true
 
+        else
+
+            # log file queued
+            log("Queue: Empty")
+            # go offline as the queue is empty
+            schedule_input_status := false
+
         end
 
     end
 
+    # sleep for a bit
     !queue_poll_delay
 
 end
@@ -109,17 +125,19 @@ def play_schedule_file() =
 
     # get current queue
     current_queue_file = !queue_file
+    # log file played
+    log("Queue: Playing #{current_queue_file['file_name']}")
     # generate play schedule file url
     current_engine_play_schedule_file_uri
         = string.replace(pattern = '<schedule_file_id>', fun(s) -> current_queue_file['schedule_file_id'], engine_play_schedule_file_uri)
     # post metadata
-    engine_play_schedule_file_response = http.get(current_engine_play_schedule_file_uri)
+    engine_play_schedule_file_response = http.get(timeout = 5., current_engine_play_schedule_file_uri)
     # ignore response
     ignore(engine_play_schedule_file_response)
 
-    ########################################
-    ## IF SCHEDULE CHANGE, SET QUEUE SHOW ##
-    ########################################
+    ############################################
+    ## IF SCHEDULE CHANGE, SET QUEUE SCHEDULE ##
+    ############################################
 
     if
         # if the queue has determined that there is a schedule change

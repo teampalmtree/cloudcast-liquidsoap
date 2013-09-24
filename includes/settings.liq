@@ -5,7 +5,7 @@
 def get_settings() =
 
     # make a http request to the engine
-    settings_mapped_response = http.get(settings_mapped_uri)
+    settings_mapped_response = http.get(timeout = 5., settings_mapped_uri)
     settings_mapped_response_data = snd(settings_mapped_response)
     settings_json = safe_json(settings_mapped_response_data)
     of_json(default = [('error', 'fail')], settings_json)

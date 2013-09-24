@@ -40,7 +40,7 @@ show_input = mksafe(
             id = "show_input",
             port = !show_input_port,
             auth = authorize_show_user,
-            max = !show_input_buffer_seconds_max,
+            max = !input_buffer_seconds_max,
             on_connect = show_input_connect,
             on_disconnect = show_input_disconnect,
             'show'
@@ -53,17 +53,29 @@ show_input = mksafe(
 ####################
 
 # create talkover input
-talkover_input = audio_to_stereo(
+talkover_input =
+audio_to_stereo(
     input.harbor(
         id = "talkover_input",
         port = !talkover_input_port,
         auth = authorize_talkover_user,
-        buffer = !talkover_input_buffer_seconds,
-        max = !talkover_input_buffer_seconds_max,
+        buffer = !input_buffer_seconds,
+        max = !input_buffer_seconds_max,
         on_connect = talkover_input_connect,
         on_disconnect = talkover_input_disconnect,
         'talkover'
     )
+)
+
+# talkover input quiet detection
+talkover_input = on_blank(
+    track_sensitive = false,
+    threshold = !talkover_quiet_threshold,
+    max_blank = !talkover_quiet_seconds,
+    min_noise = !talkover_noise_seconds,
+    on_noise = activate_talkover_input,
+    deactivate_talkover_input,
+    talkover_input
 )
 
 # eat blanks on the talkover input
@@ -74,6 +86,9 @@ talkover_input = strip_blank(
     min_noise = !talkover_noise_seconds,
     talkover_input
 )
+
+# dummy output to reduce input latency
+output.dummy(fallible = true, talkover_input)
 
 ##################
 ## MASTER INPUT ##
@@ -86,7 +101,7 @@ master_input = mksafe(
             id = "master_input",
             port = !master_input_port,
             auth = authorize_master_user,
-            max = !show_input_buffer_seconds_max,
+            max = !input_buffer_seconds_max,
             on_connect = master_input_connect,
             on_disconnect = master_input_disconnect,
             'master'
@@ -102,7 +117,7 @@ master_input = mksafe(
 jingles = on_end(delay = 1., jingle_end, jingles)
 # quiet detection
 radio := on_blank(
-    track_sensitive = true,
+    track_sensitive = false,
     threshold = !jingle_quiet_threshold,
     max_blank = !jingle_quiet_seconds,
     min_noise = !jingle_noise_seconds,
@@ -167,11 +182,12 @@ radio := switch(
     track_sensitive = false,
     transitions = [ talkover_transition, talkover_transition ],
     [
-        ({ !talkover_input_status and !talkover_input_enabled and source.is_ready(talkover_input) }, add(normalize = false, [
-            talkover_input,
-            amplify(!talkover_radio_amplification, !radio)
-        ])),
-        ({ true }, !radio)
+        ({ !talkover_input_status and !talkover_input_enabled and !talkover_input_active },
+            add(normalize = false, [
+                talkover_input,
+                amplify(!talkover_radio_amplification, !radio)
+            ])
+        ), ({ true }, !radio)
     ]
 )
 

@@ -8,6 +8,9 @@ def load_promos() =
     current_queue_file = !queue_file
     # get current queue schedule
     current_queue_schedule = !queue_schedule
+    # set sweeper interval, reset sweeper file count
+    sweeper_interval := int_of_string(current_queue_schedule['sweeper_interval'])
+    sweeper_file_count := 1
 
     ################################
     ## SWEEPERS (HARSH SONG-SONG) ##
@@ -76,6 +79,6 @@ def load_promos() =
     end
 
     # log loaded playlists
-    log("Promos: Loaded (Sweepers: #{!sweepers_available}, Jingles: #{!jingles_available}, Bumpers: #{!bumpers_available})")
+    log("Promos: Loaded (Sweepers: #{!sweepers_available} Interval: #{!sweeper_interval}, Jingles: #{!jingles_available}, Bumpers: #{!bumpers_available})")
 
 end

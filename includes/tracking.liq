@@ -58,8 +58,6 @@ def track_end(t, m) =
     log("Tracking: Ending")
     # we are exiting the meat of the song
     track_meat := false
-    # if the queue is still ready, we are about to go offline
-    schedule_input_status := not !queue_file_ready
     # call track end complete
     add_timeout(fast = false, !jingle_end_padding_seconds, track_end_complete)
 
