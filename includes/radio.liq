@@ -114,7 +114,7 @@ master_input = mksafe(
 #############
 
 # add jingles end function
-jingles = on_end(delay = 1., jingle_end, jingles)
+jingles = on_end(delay = 0., jingle_end, jingles)
 # quiet detection
 radio := on_blank(
     track_sensitive = false,
@@ -145,7 +145,7 @@ radio := add(normalize = false, [
             and not !restricted_playing
             and not (!talkover_input_status and !talkover_input_enabled)
         },
-        once(jingles)
+        jingles
     )])
 ])
 

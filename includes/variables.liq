@@ -123,7 +123,7 @@ streams = ref []
 update_inputs_post_delay = ref 5.
 
 # input buffer settings
-input_buffer_seconds = ref 2.
+input_buffer_seconds = ref 5.
 input_buffer_seconds_max = ref 40.
 
 # current input statuses

@@ -42,6 +42,7 @@ def promolist(~id = "", uri) =
             playlist_files = list.map(map, playlist_files)
             # update playlist with files requested, sorting randomly
             playlist := list.sort(fun (x, y) -> int_of_float(random.float()), playlist_files)
+            log("Promolist: Loaded playlist of #{list.length(!playlist)} files")
         else
             log("Promolist: Couldn't read playlist, request resolution failed")
             # update playlist with files requested, sorting randomly
@@ -73,6 +74,7 @@ def promolist(~id = "", uri) =
             # if playlist stopped, reload
             list.length(!playlist) == 0
         then
+            log("Promolist: Exhausted playlist with URI #{!playlist_uri}")
             reload(!playlist_uri)
         end
 
@@ -83,10 +85,8 @@ def promolist(~id = "", uri) =
 
     end
 
-    # instanciate the source
-    source = request.dynamic(id = id, next)
-    # load the playlist
-    load()
+    # instantiate the source
+    source = request.dynamic(id = id, length = 0.5, next)
     # return
     (reload, source)
 

@@ -3,12 +3,13 @@
 #####################
 
 def quiet_on()
-    log("Tracking: Quiet Detected")
     quiet_detected := true
+    log("Tracking: Quiet Detected")
 end
 
 def quiet_off()
     quiet_detected := false
+    log("Tracking: Noise Detected")
 end
 
 #####################

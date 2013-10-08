@@ -74,7 +74,7 @@ def ad_song_transition(song_a, song_b) =
                 sequence([
                     blank(duration = 1.),
                     once(bumpers),
-                    fallback([])
+                    fallback(track_sensitive = false, [])
                 ]),
                 song_fade_in(song_b)
             ])
@@ -112,7 +112,7 @@ def sweeper_song_transition(song_a, song_b) =
             sequence([
                 blank(duration = !transition_fade_seconds / 2.),
                 once(sweepers),
-                fallback([])
+                fallback(track_sensitive = false, [])
             ]),
             sequence([
                 blank(duration = !transition_fade_seconds / 2.),
