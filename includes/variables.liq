@@ -62,7 +62,7 @@ talkover_quiet_threshold = ref 0.
 ###########
 
 # create server queue to manage upcoming tracks
-radio = ref mksafe(audio_to_stereo(request.queue(id = 'schedule', length = 0.5)))
+radio = ref audio_to_stereo(request.queue(id = 'schedule', length = 0.5))
 # last queued schedule file
 queue_file = ref []
 # true is the queue can accept another file

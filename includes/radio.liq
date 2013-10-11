@@ -24,37 +24,37 @@ radio := on_end(delay = !jingle_end_padding_seconds, track_end, !radio)
 ## TRANSITIONS ##
 #################
 
-# calculate transition inhibition
-transition_inhibit = !transition_seconds * 2.
 # crossfading
-radio := smart_cross(conservative = true, width = !transition_width_seconds, duration = !transition_seconds, inhibit = transition_inhibit, transition, !radio)
+radio := smart_cross(width = !transition_width_seconds, duration = !transition_seconds, transition, !radio)
+# output radio to dummy
+output.dummy(fallible = true, !radio)
 
 ################
 ## SHOW INPUT ##
 ################
 
 # create show input
-show_input = mksafe(
-    audio_to_stereo(
-        input.harbor(
-            id = "show_input",
-            port = !show_input_port,
-            auth = authorize_show_user,
-            max = !input_buffer_seconds_max,
-            on_connect = show_input_connect,
-            on_disconnect = show_input_disconnect,
-            'show'
-        )
+show_input = audio_to_stereo(
+    input.harbor(
+        id = "show_input",
+        port = !show_input_port,
+        auth = authorize_show_user,
+        max = !input_buffer_seconds_max,
+        on_connect = show_input_connect,
+        on_disconnect = show_input_disconnect,
+        'show'
     )
 )
+
+# dummy output to reduce input latency
+output.dummy(fallible = true, show_input)
 
 ####################
 ## TALKOVER INPUT ##
 ####################
 
 # create talkover input
-talkover_input =
-audio_to_stereo(
+talkover_input = audio_to_stereo(
     input.harbor(
         id = "talkover_input",
         port = !talkover_input_port,
@@ -95,19 +95,20 @@ output.dummy(fallible = true, talkover_input)
 ##################
 
 # create master input
-master_input = mksafe(
-    audio_to_stereo(
-        input.harbor(
-            id = "master_input",
-            port = !master_input_port,
-            auth = authorize_master_user,
-            max = !input_buffer_seconds_max,
-            on_connect = master_input_connect,
-            on_disconnect = master_input_disconnect,
-            'master'
-        )
+master_input = audio_to_stereo(
+    input.harbor(
+        id = "master_input",
+        port = !master_input_port,
+        auth = authorize_master_user,
+        max = !input_buffer_seconds_max,
+        on_connect = master_input_connect,
+        on_disconnect = master_input_disconnect,
+        'master'
     )
 )
+
+# dummy output to reduce input latency
+output.dummy(fallible = true, master_input)
 
 #############
 ## JINGLES ##
@@ -154,13 +155,13 @@ radio := add(normalize = false, [
 ##########################
 
 # create silence
-silence = amplify(0.00001, noise())
+silence = amplify(id = "silence_source", 0.1, noise())
 # switch radio/silence
 radio :=  switch(
     id = 'silence_switch',
     track_sensitive = false,
     [
-        ({ !schedule_input_status and !schedule_input_enabled }, !radio),
+        ({ !schedule_input_enabled }, !radio),
         ({ true }, silence)
     ]
 )
