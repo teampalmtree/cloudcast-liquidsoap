@@ -38,27 +38,53 @@ def talkover_transition(a, b) =
 
 end
 
-###################
-## AD TRANSITION ##
-###################
+######################
+## AD-AD TRANSITION ##
+######################
 
-def ad_transition(song_a, song_b) =
+def ad_ad_transition(song_a, song_b) =
 
     # log transition
-    log("Transitions: Ad")
+    log("Transitions: Ad-Ad")
+    # simple end and start
+    sequence([ song_a, song_b ])
+
+end
+
+#########################
+## AD-INTRO TRANSITION ##
+#########################
+
+def ad_intro_transition(song_a, song_b) =
+
+    # log transition
+    log("Transitions: Ad-Intro")
     # simple end and start
     sequence([ song_a, song_b ])
 
 end
 
 ########################
-## AD-SONG TRANSITION ##
+## FILE-AD TRANSITION ##
 ########################
 
-def ad_song_transition(song_a, song_b) =
+def file_ad_transition(song_a, song_b) =
 
     # log transition
-    log("Transitions: Ad-Song")
+    log("Transitions: File-Ad")
+    # simple end and start
+    sequence([ song_a, song_b ])
+
+end
+
+########################
+## AD-FILE TRANSITION ##
+########################
+
+def ad_file_transition(song_a, song_b) =
+
+    # log transition
+    log("Transitions: Ad-File")
 
     if
         # make sure bumpers are available
@@ -92,11 +118,14 @@ def ad_song_transition(song_a, song_b) =
 
 end
 
-#############################
-## SWEEPER SONG TRANSITION ##
-#############################
+##################################
+## FILE-SWEEPER-FILE TRANSITION ##
+##################################
 
-def sweeper_song_transition(song_a, song_b) =
+def file_sweeper_file_transition(song_a, song_b) =
+
+    # log transition
+    log("Transitions: File-Sweeper-File")
 
     if
         # make sure we have sweepers
@@ -130,12 +159,12 @@ def sweeper_song_transition(song_a, song_b) =
 
 end
 
-#####################
-## SONG TRANSITION ##
-#####################
+##########################
+## FILE-FILE TRANSITION ##
+##########################
 
 # song-song transition
-def song_transition(power_a, power_b, song_a, song_b) =
+def file_file_transition(power_a, power_b, song_a, song_b) =
 
     ############################
     ## FADE A OUT + FADE B IN ##
@@ -208,7 +237,7 @@ def song_transition(power_a, power_b, song_a, song_b) =
         # completely mask one of them.
         log("Transitions: Song: End/Sweeper/Begin")
         # throw a sweeper in between
-        sweeper_song_transition(song_a, song_b)
+        file_sweeper_file_transition(song_a, song_b)
 
     end
 
@@ -222,21 +251,56 @@ def transition(power_a, power_b, meta_a, meta_b, song_a, song_b)
 
     log("Transititons: Triaging...")
     # see if a or b is an ad
-    ad_a = meta_a['genre'] == 'Ad'
-    ad_b = meta_b['genre'] == 'Ad'
+    genre_a = meta_a['genre']
+    genre_b = meta_b['genre']
 
-    # triage based on content
-    if ad_a and ad_b then
-        ad_transition(song_a, song_b)
-    elsif not ad_a and ad_b then
-        ad_transition(song_a, song_b)
-    elsif ad_a and not ad_b then
-        ad_song_transition(song_a, song_b)
+    ######################
+    ## AD-AD TRANSITION ##
+    ######################
+
+    if (genre_a == 'Ad') and (genre_b == 'Ad') then
+        ad_ad_transition(song_a, song_b)
+
+    #########################
+    ## AD-INTRO TRANSITION ##
+    #########################
+
+    elsif (genre_a == 'Ad') and (genre_b == 'Intro') then
+        ad_intro_transition(song_a, song_b)
+
+    ########################
+    ## FILE-AD TRANSITION ##
+    ########################
+
+    elsif (genre_b == 'Ad') then
+        file_ad_transition(song_a, song_b)
+
+    ########################
+    ## AD-FILE TRANSITION ##
+    ########################
+
+    elsif (genre_a == 'Ad') then
+        ad_file_transition(song_a, song_b)
+
+    ############################
+    ## INTRO-FILE TRANSITIONS ##
+    ############################
+
+    elsif (genre_a == 'Intro') then
+        intro_file_transition(song_a, song_b)
+
+    ##########################
+    ## FILE-FILE TRANSITION ##
+    ##########################
+
     else
 
         # see if our sweeper interval is zero (automatic sweepers)
         if !sweeper_interval == 0 then
-            song_transition(power_a, power_b, song_a, song_b)
+
+            # run standard file-file transition
+            file_file_transition(power_a, power_b, song_a, song_b)
+
         else
 
             # if we aren't fully automated, force a sweeper when it is our turn
@@ -244,13 +308,13 @@ def transition(power_a, power_b, meta_a, meta_b, song_a, song_b)
 
                 # reset sweeper file count
                 sweeper_file_count := 1
-                sweeper_song_transition(song_a, song_b)
+                file_sweeper_file_transition(song_a, song_b)
 
             else
 
                 # increment sweeper file count
                 sweeper_file_count := !sweeper_file_count + 1
-                song_transition(power_a, power_b, song_a, song_b)
+                file_file_transition(power_a, power_b, song_a, song_b)
 
             end
 
