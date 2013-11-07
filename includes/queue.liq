@@ -1,115 +1,88 @@
-#########################
-## GET NEXT QUEUE FILE ##
-#########################
+##################
+## RESET QUEUED ##
+##################
 
-def get_next_queue_file() =
+def reset_queued() =
 
-    # make a http request to the gateway
-    engine_next_queue_file_response = http.get(timeout = 5., engine_next_queue_file_uri)
-    engine_next_queue_file_response_data = snd(engine_next_queue_file_response)
-    next_queue_file_json = safe_json(engine_next_queue_file_response_data)
+    # make a http request to the engine
+    ignore(http.get(timeout = !http_timeout, engine_reset_queued_uri))
+
+end
+
+####################
+## GET NEXT QUEUE ##
+####################
+
+def get_next_queues() =
+
+    # make a http request to the engine
+    engine_next_queues_response = http.get(timeout = !http_timeout, engine_next_queues_uri)
+    engine_next_queues_response_data = snd(engine_next_queues_response)
+    next_queues_json = safe_json(engine_next_queues_response_data)
 
     if
         # check for none
-        next_queue_file_json == '"NONE"'
+        next_queues_json == '"NONE"'
     then
-        [('error', 'failure')]
+        [[('error', 'failure')]]
     else
-        of_json(default = [('error', 'failure')], next_queue_file_json)
+        of_json(default = [[('error', 'failure')]], next_queues_json)
     end
 
 end
 
-########################
-## SET QUEUE SCHEDULE ##
-########################
+################
+## PUSH QUEUE ##
+################
 
-def set_queue_schedule() =
+def push_queue(queue) =
 
-    # get current queue
-    current_queue_file = !queue_file
-
-    # get current schedule queue show uri
-    current_engine_queue_schedule_uri = string.replace(pattern = '<schedule_id>', fun(s) -> current_queue_file['schedule_id'], engine_queue_schedule_uri)
-
-    # make a http request to the gateway
-    current_engine_queue_schedule_response = http.get(timeout = 5., current_engine_queue_schedule_uri)
-    current_engine_queue_schedule_response_data = snd(current_engine_queue_schedule_response)
-    queue_schedule_json = safe_json(current_engine_queue_schedule_response_data)
-    # set queue schedule
-    queue_schedule := of_json(default = [('error', 'failure')], queue_schedule_json)
-
-    # load the promos for this schedule
-    load_promos()
+    # push file name to server queue
+    ignore(server.execute("schedule.push #{queue['file_name']}"))
 
 end
 
-################
-## POLL QUEUE ##
-################
+######################
+## POLL NEXT QUEUES ##
+######################
 
-# queue files one at a time
-def poll_queue() =
+# poll next queues
+def poll_next_queues() =
 
-    if
-        # see if the queue is ready (for a new file)
-        !queue_file_ready
-    then
+    # get queue
+    the_next_queues = get_next_queues()
+    first_next_queue = list.nth(the_next_queues, 0)
+    # determine request to generate
+    if first_next_queue['error'] != "failure" then
 
-        # get queue
-        next_queue_file = get_next_queue_file()
+        ########################
+        ## NEXT QUEUES UPDATE ##
+        ########################
 
-        if
-            # determine request to generate
-            next_queue_file['error'] != "failure"
-        then
+        # log file queued
+        log("Queue: Added #{first_next_queue['file_name']}")
+        # append next queue to queues
+        next_queues := list.append(the_next_queues, !next_queues)
+        # push all new queues to the schedule
+        list.iter(push_queue, the_next_queues)
+        # update schedule input status
+        schedule_input_status := true
 
-            ###############################
-            ## SCHEDULE CHANGE DETECTION ##
-            ###############################
+    else
 
-            # get current queue
-            current_queue_file = !queue_file
+        ##################################
+        ## UPDATE SCHEDULE INPUT STATUS ##
+        ##################################
 
-            if
-                # see if this is a schedule change
-                current_queue_file == []
-                or current_queue_file['schedule_id'] != next_queue_file['schedule_id']
-            then
-
-                # flag the schedule change
-                queue_schedule_changed := true
-
-            end
-
-            ##################
-            ## QUEUE UPDATE ##
-            ##################
-
-            # set queue to next
-            queue_file := next_queue_file
-            # push file name to server queue
-            ignore(server.execute("schedule.push #{next_queue_file['file_name']}"))
-            # log file queued
-            log("Queue: Added #{next_queue_file['file_name']}")
-            # the queue is satisfied
-            queue_file_ready := false
-            # update schedule input status
-            schedule_input_status := true
-
-        else
-
-            # log file queued
-            log("Queue: Empty")
-            # go offline as the queue is empty
+        # update schedule input status to offline if no next files
+        if list.length(!next_queues) == 0 then
             schedule_input_status := false
-
         end
 
     end
 
-    # sleep for a bit
-    !queue_poll_delay
+    # keep poling
+    !next_queues_poll_delay
 
 end
 
@@ -119,45 +92,89 @@ end
 
 def play_schedule_file() =
 
+    # get updated current queue
+    the_current_queue = !current_queue
+    # log file played
+    log("Queue: Playing #{the_current_queue['file_name']}")
+    # generate play schedule file url
+    current_engine_play_schedule_file_uri
+        = string.replace(pattern = '<schedule_file_id>', fun(s) -> the_current_queue['schedule_file_id'], engine_play_schedule_file_uri)
+    # post metadata
+    ignore(http.get(timeout = !http_timeout, current_engine_play_schedule_file_uri))
+
+    ############################
+    ## PROCESS STREAM UPDATES ##
+    ############################
+
+    # get current genre
+    current_genre = the_current_queue['file_genre']
+
+    if
+        # do stream updates for non-sweeper/bumper
+        (current_genre != 'Sweeper')
+        and (current_genre != 'Bumper')
+    then
+
+        # process stream updates
+        save_stream_statistics()
+        update_stream_metadatas()
+
+    end
+
+    # don't loop
+    (-1.)
+
+end
+
+########################
+## PLAY CURRENT QUEUE ##
+########################
+
+def play_current_queue() =
+
+    #############################
+    ## GET CURRENT SCHEDULE ID ##
+    #############################
+
+    current_schedule_id = ref ''
+    # get current queue
+    the_current_queue = !current_queue
+    # set the current schedule id if we have a current queue
+    if the_current_queue != [] then
+        current_schedule_id := the_current_queue['schedule_id']
+    end
+
+    ###########################################
+    ## GET CURRENT QUEUE, REMOVE FROM QUEUES ##
+    ###########################################
+
+    # update current queue
+    current_queue := list.nth(!next_queues, 0)
+    # remove current queue
+    next_queues := list.tl(!next_queues)
+
     #####################################
     ## NOTIFY CC OF SCHEDULE FILE PLAY ##
     #####################################
 
-    # get current queue
-    current_queue_file = !queue_file
-    # log file played
-    log("Queue: Playing #{current_queue_file['file_name']}")
-    # generate play schedule file url
-    current_engine_play_schedule_file_uri
-        = string.replace(pattern = '<schedule_file_id>', fun(s) -> current_queue_file['schedule_file_id'], engine_play_schedule_file_uri)
-    # post metadata
-    engine_play_schedule_file_response = http.get(timeout = 5., current_engine_play_schedule_file_uri)
-    # ignore response
-    ignore(engine_play_schedule_file_response)
+    # notify cc of schedule file play
+    add_timeout(fast = true, 0., play_schedule_file)
 
-    ############################################
-    ## IF SCHEDULE CHANGE, SET QUEUE SCHEDULE ##
-    ############################################
+    ###############################
+    ## SCHEDULE CHANGE DETECTION ##
+    ###############################
 
     if
-        # if the queue has determined that there is a schedule change
-        !queue_schedule_changed
+        # see if this is a schedule change
+        !current_schedule_id == ''
+        or !current_schedule_id != the_current_queue['schedule_id']
     then
 
         # log schedule change
-        log("Queue: Schedule Changed")
-        # set queue schedule
-        set_queue_schedule()
-        # reset schedule change flag
-        queue_schedule_changed := false
+        log("Queue: Schedule Changed, Loading New Jingles")
+        # load the promos for this schedule
+        add_timeout(fast = true, 0., load_jingles)
 
     end
-
-    ######################
-    ## QUEUE FILE READY ##
-    ######################
-
-    # que is ready for another file
-    queue_file_ready := true
 
 end

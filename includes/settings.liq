@@ -5,7 +5,7 @@
 def get_settings() =
 
     # make a http request to the engine
-    settings_mapped_response = http.get(timeout = 5., settings_mapped_uri)
+    settings_mapped_response = http.get(timeout = !http_timeout, settings_mapped_uri)
     settings_mapped_response_data = snd(settings_mapped_response)
     settings_json = safe_json(settings_mapped_response_data)
     of_json(default = [('error', 'fail')], settings_json)
@@ -22,12 +22,9 @@ def set_settings(settings) =
     station_name := settings['station_name']
 
     # transitions
+    transition_cross_seconds := float_of_string(settings['transition_cross_seconds'])
     transition_fade_seconds := float_of_string(settings['transition_fade_seconds'])
-    transition_seconds := float_of_string(settings['transition_seconds'])
-    transition_width_seconds := float_of_string(settings['transition_width_seconds'])
-    transition_power_margin := float_of_string(settings['transition_power_margin'])
-    transition_high_power := float_of_string(settings['transition_high_power'])
-    transition_medium_power := float_of_string(settings['transition_medium_power'])
+    transition_delay_seconds := float_of_string(settings['transition_delay_seconds'])
     
     # jingles
     jingle_quiet_threshold := float_of_string(settings['jingle_quiet_threshold'])
@@ -58,12 +55,9 @@ def set_settings(settings) =
     log('Settings: station_name = ' ^ string_of(!station_name))
 
     # transitions
+    log('Settings: transition_cross_seconds = ' ^ string_of(!transition_cross_seconds))
     log('Settings: transition_fade_seconds = ' ^ string_of(!transition_fade_seconds))
-    log('Settings: transition_seconds = ' ^ string_of(!transition_seconds))
-    log('Settings: transition_width_seconds = ' ^ string_of(!transition_width_seconds))
-    log('Settings: transition_power_margin = ' ^ string_of(!transition_power_margin))
-    log('Settings: transition_high_power = ' ^ string_of(!transition_high_power))
-    log('Settings: transition_medium_power = ' ^ string_of(!transition_medium_power))
+    log('Settings: transition_delay_seconds = ' ^ string_of(!transition_delay_seconds))
 
     # jingles
     log('Settings: jingle_quiet_threshold = ' ^ string_of(!jingle_quiet_threshold))

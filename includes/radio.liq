@@ -2,15 +2,17 @@
 ## QUEUE ##
 ###########
 
-# queue file loop
-add_timeout(fast = false, !queue_poll_delay, poll_queue)
+# reset queued
+reset_queued()
+# poll the queue for the initial song
+add_timeout(fast = true, !next_queues_poll_delay, poll_next_queues)
 
 ############
 ## INPUTS ##
 ############
 
 # input status loop
-add_timeout(fast = false, !update_inputs_post_delay, update_inputs)
+add_timeout(fast = true, !update_inputs_post_delay, update_inputs)
 
 ##############
 ## TRACKING ##
@@ -24,8 +26,8 @@ radio := on_end(delay = !jingle_end_padding_seconds, track_end, !radio)
 ## TRANSITIONS ##
 #################
 
-# crossfading
-radio := smart_cross(width = !transition_width_seconds, duration = !transition_seconds, transition, !radio)
+# cross fading
+radio := smart_cross(duration = !transition_cross_seconds, transition, !radio)
 # output radio to dummy
 output.dummy(fallible = true, !radio)
 
@@ -128,7 +130,7 @@ radio := on_blank(
 )
 
 # mix in jingles when:
-# - jingles are available (loaded)
+# - are available
 # - detect quiet
 # - are in the meat of a song
 # - have not occurred in a while (ready)
@@ -154,15 +156,15 @@ radio := add(normalize = false, [
 ## HOOK INPUTS TOGETHER ##
 ##########################
 
-# create silence
-silence = amplify(id = "silence_source", 0.1, noise())
-# switch radio/silence
+# create loop
+loop = single('includes/loop.mp3')
+# switch radio/loop
 radio :=  switch(
-    id = 'silence_switch',
+    id = 'loop_switch',
     track_sensitive = false,
     [
         ({ !schedule_input_enabled }, !radio),
-        ({ true }, silence)
+        ({ true }, loop)
     ]
 )
 

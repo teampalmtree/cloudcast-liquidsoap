@@ -3,7 +3,7 @@
 ####################
 
 # make a http request to the engine
-streams_active_response = http.get(timeout = 5., streams_active_uri)
+streams_active_response = http.get(timeout = !http_timeout, streams_active_uri)
 streams_active_response_data = snd(streams_active_response)
 streams_active_response_data = safe_json(streams_active_response_data)
 streams := of_json(default = [[('error', 'fail')]], streams_active_response_data)
@@ -57,7 +57,7 @@ def save_stream_statistic(stream) =
     current_engine_save_stream_statistics_uri
         = string.replace(pattern = '<stream_id>', fun(s) -> stream['id'], engine_save_stream_statistics_uri)
     # save statistics
-    current_engine_save_stream_statistics_response = http.get(timeout = 5., current_engine_save_stream_statistics_uri)
+    current_engine_save_stream_statistics_response = http.get(timeout = !http_timeout, current_engine_save_stream_statistics_uri)
     # ignore response
     ignore(current_engine_save_stream_statistics_response)
 
@@ -81,10 +81,10 @@ def update_stream_metadata(stream) =
         stream['type'] == '1'
     then
 
-        # get file
-        current_queue_file = !queue_file
+        # get the current queue
+        the_current_queue = !current_queue
         # create metadata
-        metadata = [('song', current_queue_file['file_artist'] ^ ' - ' ^ current_queue_file['file_title'])]
+        metadata = [('song', the_current_queue['file_artist'] ^ ' - ' ^ the_current_queue['file_title'])]
         # send metadata packet to stream
         icy.update_metadata(
             host = stream['host'],
