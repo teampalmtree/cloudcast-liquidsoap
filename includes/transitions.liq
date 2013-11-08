@@ -2,9 +2,15 @@
 ## FADERS ##
 ############
 
-# fading functions
-fade_out = fun(a) -> fade.out(type = "lin", duration = !transition_fade_seconds, a)
-fade_in = fun(a) -> fade.in(type = "lin", duration = !transition_fade_seconds, a)
+# file faders
+fade_out = fun(s) -> fade.final(type = "lin", duration = !transition_fade_seconds, s)
+fade_in = fun(s) -> fade.initial(type = "lin", duration = !transition_fade_seconds, s)
+# input faders
+input_fade_out = fun(s) -> fade.final(type = "lin", duration = !input_transition_fade_seconds, s)
+input_fade_in = fun(s) -> fade.initial(type = "lin", duration = !input_transition_fade_seconds, s)
+# talkover faders
+talkover_fade_out = fun(s) -> fade.final(type = "lin", duration = !talkover_transition_fade_seconds, s)
+talkover_fade_in = fun(s) -> fade.initial(type = "lin", duration = !talkover_transition_fade_seconds, s)
 
 ######################
 ## INPUT TRANSITION ##
@@ -16,8 +22,8 @@ def input_transition(a, b) =
     log("Transitions: Input")
     # bring back the music with sweeper
     add(normalize = false, [
-        fade.initial(duration = !input_transition_fade_seconds, b),
-        fade.final(duration = !input_transition_fade_seconds, a)
+        input_fade_in(b),
+        input_fade_out(a)
     ])
 
 end
@@ -32,8 +38,8 @@ def talkover_transition(a, b) =
     log("Transitions: Talkover")
     # bring back the music with sweeper
     add(normalize = false, [
-        fade.initial(duration = !talkover_transition_fade_seconds, b),
-        fade.final(duration = !talkover_transition_fade_seconds, a)
+        talkover_fade_in(b),
+        talkover_fade_out(a)
     ])
 
 end
@@ -49,12 +55,11 @@ def bumper_file_transition(file_a, file_b) =
     # finish the bumper while fading in b
     add(normalize = false, [
         sequence([
-            file_a,
-            fallback(track_sensitive = false, [])
-        ]),
-        sequence([
             blank(duration = !transition_delay_seconds),
             fade_in(file_b)
+        ]), sequence([
+            file_a,
+            fallback(track_sensitive = false, [])
         ])
     ])
 
@@ -71,12 +76,11 @@ def intro_file_transition(file_a, file_b) =
    # start intro, fading in music after a delay
    add(normalize = false, [
        sequence([
-           file_a,
-           fallback(track_sensitive = false, [])
-       ]),
-       sequence([
            blank(duration = !transition_delay_seconds),
            fade_in(file_b)
+       ]), sequence([
+           file_a,
+           fallback(track_sensitive = false, [])
        ])
    ])
 
@@ -94,12 +98,11 @@ def file_sweeper_transition(file_a, file_b) =
     # fade out file while starting sweeper
     add(normalize = false, [
         sequence([
+            blank(duration = !transition_delay_seconds),
+            file_b
+        ]), sequence([
             fade_out(file_a),
             fallback(track_sensitive = false, [])
-        ]),
-        sequence([
-            blank(duration = !transition_fade_seconds / 2.),
-            file_b
         ])
     ])
 
@@ -116,13 +119,12 @@ def sweeper_file_transition(file_a, file_b) =
     # finish sweeper, fade in file
     add(normalize = false, [
         sequence([
+            blank(duration = !transition_delay_seconds),
+            fade_in(file_b)
+        ]), sequence([
             file_a,
             fallback(track_sensitive = false, [])
         ]),
-        sequence([
-            blank(duration = !transition_fade_seconds / 2.),
-            fade_in(file_b)
-        ])
     ])
 
 end
@@ -137,8 +139,8 @@ def file_file_transition(file_a, file_b) =
     log("Transitions: File-File")
     # finish the ad, fade in b
     add(normalize = false, [
-            fade_out(file_a),
-        fade_in(file_b)
+        fade_in(file_b),
+        fade_out(file_a)
     ])
 
 end
