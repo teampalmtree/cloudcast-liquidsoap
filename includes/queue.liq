@@ -110,9 +110,10 @@ def play_schedule_file() =
     current_genre = the_current_queue['file_genre']
 
     if
-        # do stream updates for non-sweeper/bumper
+        # do stream updates for non-sweeper/bumper/intro
         (current_genre != 'Sweeper')
         and (current_genre != 'Bumper')
+        and (current_genre != 'Intro')
     then
 
         # process stream updates

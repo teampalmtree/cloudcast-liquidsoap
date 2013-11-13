@@ -73,16 +73,16 @@ def intro_file_transition(file_a, file_b) =
 
     # log transition
     log("Transitions: Intro-File")
-   # start intro, fading in music after a delay
-   add(normalize = false, [
-       sequence([
-           blank(duration = !transition_delay_seconds),
-           fade_in(file_b)
-       ]), sequence([
-           file_a,
-           fallback(track_sensitive = false, [])
-       ])
-   ])
+    # start intro, fading in music after a delay
+    add(normalize = false, [
+        sequence([
+            blank(duration = !transition_delay_seconds),
+            fade_in(file_b)
+        ]), sequence([
+            file_a,
+            fallback(track_sensitive = false, [])
+        ])
+    ])
 
 end
 
@@ -129,6 +129,22 @@ def sweeper_file_transition(file_a, file_b) =
 
 end
 
+##################################
+## CROSSED FILE-FILE TRANSITION ##
+##################################
+
+def crossed_file_file_transition(file_a, file_b) =
+
+    # log transition
+    log("Transitions: Crossed File-File")
+    # cross fade files
+    add(normalize = false, [
+        fade_in(file_b),
+        fade_out(file_a)
+    ])
+
+end
+
 ##########################
 ## FILE-FILE TRANSITION ##
 ##########################
@@ -137,10 +153,10 @@ def file_file_transition(file_a, file_b) =
 
     # log transition
     log("Transitions: File-File")
-    # finish the ad, fade in b
-    add(normalize = false, [
-        fade_in(file_b),
-        fade_out(file_a)
+    # finish the file, start the next file
+    sequence([
+        file_a,
+        file_b
     ])
 
 end
@@ -151,17 +167,46 @@ end
 
 def transition(power_a, power_b, meta_a, meta_b, file_a, file_b)
 
-    log("Transititons: Triaging...")
-    # see if a or b is an ad
+    # get genres
     genre_a = meta_a['genre']
     genre_b = meta_b['genre']
+    # log triage
+    log("Transititons: Triaging (#{genre_a}-#{genre_b})")
+
+    ########################
+    ## FILE-AD TRANSITION ##
+    ########################
+
+    if (genre_b == 'Ad') then
+        file_file_transition(file_a, file_b)
+
+    ########################
+    ## AD-FILE TRANSITION ##
+    ########################
+
+    elsif (genre_a == 'Ad') and (genre_b != 'Bumper') then
+        file_file_transition(file_a, file_b)
+
+    ############################
+    ## FILE-BUMPER TRANSITION ##
+    ############################
+
+    elsif (genre_b == 'Bumper') then
+        file_file_transition(file_a, file_b)
 
     ############################
     ## BUMPER-FILE TRANSITION ##
     ############################
 
-    if (genre_a == 'Bumper') and (genre_b != 'Intro') then
+    elsif (genre_a == 'Bumper') and (genre_b != 'Intro') then
         bumper_file_transition(file_a, file_b)
+
+    ###########################
+    ## FILE-INTRO TRANSITION ##
+    ###########################
+
+    elsif (genre_b == 'Intro') then
+        file_file_transition(file_a, file_b)
 
     ############################
     ## INTRO-FILE TRANSITIONS ##
@@ -169,6 +214,20 @@ def transition(power_a, power_b, meta_a, meta_b, file_a, file_b)
 
     elsif (genre_a == 'Intro') then
         intro_file_transition(file_a, file_b)
+
+    #########################
+    ## FILE-SET TRANSITION ##
+    #########################
+
+    elsif (genre_b == 'Set') then
+        file_file_transition(file_a, file_b)
+
+    #########################
+    ## SET-FILE TRANSITION ##
+    #########################
+
+    elsif (genre_a == 'Set') then
+        file_file_transition(file_a, file_b)
 
     #############################
     ## FILE-SWEEPER TRANSITION ##
@@ -184,12 +243,12 @@ def transition(power_a, power_b, meta_a, meta_b, file_a, file_b)
     elsif (genre_a == 'Sweeper') then
         sweeper_file_transition(file_a, file_b)
 
-    ##########################
-    ## FILE-FILE TRANSITION ##
-    ##########################
+    ##################################
+    ## CROSSED FILE-FILE TRANSITION ##
+    ##################################
 
     else
-        file_file_transition(file_a, file_b)
+        crossed_file_file_transition(file_a, file_b)
 
     end
 

@@ -20,6 +20,7 @@ def set_settings(settings) =
 
     # general
     station_name := settings['station_name']
+    loop_file := settings['loop_file']
 
     # transitions
     transition_cross_seconds := float_of_string(settings['transition_cross_seconds'])
@@ -52,7 +53,8 @@ def set_settings(settings) =
     ##################
 
     # transitions
-    log('Settings: station_name = ' ^ string_of(!station_name))
+    log('Settings: station_name = ' ^ !station_name)
+    log('Settings: loop_file = ' ^ !loop_file)
 
     # transitions
     log('Settings: transition_cross_seconds = ' ^ string_of(!transition_cross_seconds))

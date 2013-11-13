@@ -23,6 +23,7 @@ engine_reset_queued_uri = cloudcast_uri ^ "/engine/reset_queued.rawxml" ^ "?key=
 
 # general
 station_name = ref ''
+loop_file = ref ''
 
 # transitions
 transition_cross_seconds = ref 0.
