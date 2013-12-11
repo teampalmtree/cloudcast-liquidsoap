@@ -2,137 +2,86 @@
 ## SUPERLIST ##
 ###############
 
-# add dummy protocol
-add_protocol("nothing",fun(_,_)->[])
+def superlist(id, timeout, uri) =
 
-def superlist(~id = "", uri) =
-
-    # reference to the playlist
+    # playlist of files
     playlist = ref []
     # reference to the uri
     playlist_uri = ref uri
-    # availability
-    available = ref true
+    # source for this superlist
+    source = audio_to_stereo(request.queue(id = id, length = 0.5))
 
-    # file request function
-    def map(el) =
+    # push
+    def push(file) =
 
-        meta = fst(el)
-        file = snd(el)
-        s = list.fold(fun (cur, el) -> "#{cur},#{fst(el)}=#{string.escape(snd(el))}", "", meta)
-
-        if s == "" then
-            file
-        else
-            "annotate:#{s}:#{file}"
-        end
+        # push file name to queue
+        ignore(server.execute("#{id}.push #{file}"))
+        # log the push
+        log("Superlist: Added #{file} to #{id} Playlist")
 
     end
 
     # load function
     def load() =
 
-        # create a request resource to the uri
-        playlist_request = request.create.raw(!playlist_uri)
+        # make sure we have a uri
+        if !playlist_uri != "" then
 
-        if
+            # make a http request to the uri
+            playlist_uri_response = http.get(timeout = timeout, headers = !http_ajax_headers, !playlist_uri)
+            playlist_uri_response_data = snd(playlist_uri_response)
+            playlist_uri_json = safe_json(playlist_uri_response_data)
 
-            # perform request to get the playlist
-            request.resolve(playlist_request)
+            # check for error
+            if playlist_uri_json != '"NONE"' then
 
-        then
-
-            # get the filename for this request (local copy)
-            playlist_filename = request.filename(playlist_request)
-            # parse local playlist
-            playlist_files = playlist.parse(playlist_filename)
-            # check for none
-            if snd(list.nth(playlist_files, 0)) != 'NONE' then
-
-                # re-map playlist files
-                playlist_files = list.map(map, playlist_files)
-                # update playlist with files requested, sorting randomly
-                playlist := list.sort(fun (x, y) -> int_of_float(random.float()), playlist_files)
-                log("Superlist: Loaded playlist of #{list.length(!playlist)} files")
-
-            else
-
-                # set no files available
-                available := false
-                # set playlist empty
-                playlist := []
-                # log no files available
-                log("Superlist: No Files Available")
+                # update playlist
+                playlist := of_json(default = [], playlist_uri_json)
+                # push all files to the superlist queue
+                list.iter(push, !playlist)
 
             end
 
-        else
-
-            # set no files available
-            available := false
-            # set playlist empty
-            playlist := []
-            # log request resolution failure
-            log("Superlist: Couldn't Read Playlist")
-
         end
-
-        # release request resources
-        request.destroy(playlist_request)
-
 
     end
 
     # reload function
     def reload(uri = "") =
 
-        # if new URI passed, update instance
+        # update uri
         if uri != "" then
             playlist_uri := uri
         end
 
         # log reloading
-        log("Superlist: Reloading Playlist with URI #{!playlist_uri}")
+        log("Superlist: Reloading #{id} Playlist")
         # load playlist URI
         load()
 
     end
 
-    # The next function
-    def next() =
+    def play(m) =
 
-        # if playlist empty, and files are available, attempt reload
-        if !available then
+        # update playlist, removing next file
+        playlist := list.tl(!playlist)
+        # if we have no files left, reload
+        if list.length(!playlist) == 0 then
 
-            # check for empty playlist, attempt auto-reload
-            if list.length(!playlist) == 0 then
-
-                # log playlist exhausted
-                log("Superlist: Exhausted Playlist with URI #{!playlist_uri}")
-                # reload playlist
-                reload(!playlist_uri)
-
-            end
-
-            # grab next file from playlist
-            file = list.hd(!playlist)
-            # update playlist, removing next file
-            playlist := list.tl(!playlist)
-            # create request for the file
-            request.create(file)
-
-        else
-
-            # create empty request
-            request.create("nothing:")
+            # log playlist exhausted
+            log("Superlist: Exhausted #{id} Playlist")
+            # reload superlist
+            reload()
 
         end
 
     end
 
-    # instantiate the source
-    source = request.dynamic(id = id, length = 0.5, next)
+    # add on track to source
+    source = on_track(play, source)
+    # do an initial load
+    load()
     # return
-    ( source, ( available, reload ))
+    ( source, reload )
 
 end

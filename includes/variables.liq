@@ -2,14 +2,15 @@
 ## GENERAL ##
 #############
 
-# general
-#http_json_header = ref [("Content-Type","application/json; charset=utf-8")]
+# http settings
 http_timeout = ref 5.
+http_retry_delay = ref 5.
+http_ajax_headers = ref [('X-Requested-With', 'XMLHttpRequest')]
 
 # URLs
-settings_mapped_uri = cloudcast_uri ^ "/settings/mapped.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+settings_values_uri = cloudcast_uri ^ "/settings/values.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 streams_active_uri = cloudcast_uri ^ "/streams/active.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
-engine_schedule_jingles_uri = cloudcast_uri ^ "/engine/schedule_jingles/<schedule_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
+engine_schedule_promos_uri = cloudcast_uri ^ "/engine/schedule_promos/<schedule_id>/<genre>.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 engine_save_stream_statistics_uri = cloudcast_uri ^ "/engine/save_stream_statistics/<stream_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 engine_next_queues_uri = cloudcast_uri ^ "/engine/next_queues.json" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
 engine_play_schedule_file_uri = cloudcast_uri ^ "/engine/play_schedule_file/<schedule_file_id>.rawxml" ^ "?key=" ^ cloudcast_uri_key ^ "&" ^ cloudcast_uri_parameters
@@ -63,16 +64,6 @@ next_queues = ref []
 current_queue = ref []
 # next queues poll delay
 next_queues_poll_delay = ref 5.
-
-#############
-## JINGLES ##
-#############
-
-# jingles playlist
-jingles_playlist = superlist(id = 'jingles', '')
-jingles = audio_to_stereo(fst(jingles_playlist))
-jingles_available = fst(snd(jingles_playlist))
-jingles_reload = snd(snd(jingles_playlist))
 
 ##############
 ## TRACKING ##

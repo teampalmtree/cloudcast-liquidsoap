@@ -3,7 +3,7 @@
 ####################
 
 # make a http request to the engine
-streams_active_response = http.get(timeout = !http_timeout, streams_active_uri)
+streams_active_response = http.get(timeout = !http_timeout, headers = !http_ajax_headers, streams_active_uri)
 streams_active_response_data = snd(streams_active_response)
 streams_active_response_data = safe_json(streams_active_response_data)
 streams := of_json(default = [[('error', 'fail')]], streams_active_response_data)
@@ -14,19 +14,16 @@ streams := of_json(default = [[('error', 'fail')]], streams_active_response_data
 
 def initialize_stream(stream) =
 
-    if
-
-        # check type
-        stream['type'] == '0'
-
-    then
+    # local
+    if stream['type'] == 'local' then
 
         # log local stream
         log("Streams: Local Output")
         # create audio card output
         output.ao(fallible = true, !radio)
 
-    else
+    # icecast
+    elsif stream['type'] == 'icecast' then
 
         # log connection
         log("Streams: Icecast Output Host=#{stream['host']}:#{stream['port']}, Mount=#{stream['mount']}")
@@ -41,8 +38,14 @@ def initialize_stream(stream) =
             mount = stream['mount'],
             !radio)
 
+    else
+
+        # should never reach here
+        output.dummy(fallible = true, !radio)
+
     end
 
+    # success
     ignore(1)
 
 end
@@ -57,7 +60,7 @@ def save_stream_statistic(stream) =
     current_engine_save_stream_statistics_uri
         = string.replace(pattern = '<stream_id>', fun(s) -> stream['id'], engine_save_stream_statistics_uri)
     # save statistics
-    current_engine_save_stream_statistics_response = http.get(timeout = !http_timeout, current_engine_save_stream_statistics_uri)
+    current_engine_save_stream_statistics_response = http.get(timeout = !http_timeout, headers = !http_ajax_headers, current_engine_save_stream_statistics_uri)
     # ignore response
     ignore(current_engine_save_stream_statistics_response)
 
@@ -78,7 +81,7 @@ def update_stream_metadata(stream) =
 
     if
         # check type (icecast)
-        stream['type'] == '1'
+        stream['type'] == 'icecast'
     then
 
         # get the current queue

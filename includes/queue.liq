@@ -5,46 +5,36 @@
 def reset_queued() =
 
     # make a http request to the engine
-    ignore(http.get(timeout = !http_timeout, engine_reset_queued_uri))
-
-end
-
-####################
-## GET NEXT QUEUE ##
-####################
-
-def get_next_queues() =
-
-    # make a http request to the engine
-    engine_next_queues_response = http.get(timeout = !http_timeout, engine_next_queues_uri)
-    engine_next_queues_response_data = snd(engine_next_queues_response)
-    next_queues_json = safe_json(engine_next_queues_response_data)
-
-    if
-        # check for none
-        next_queues_json == '"NONE"'
-    then
-        [[('error', 'failure')]]
-    else
-        of_json(default = [[('error', 'failure')]], next_queues_json)
-    end
-
-end
-
-################
-## PUSH QUEUE ##
-################
-
-def push_queue(queue) =
-
-    # push file name to server queue
-    ignore(server.execute("schedule.push #{queue['file_name']}"))
+    ignore(http.get(timeout = !http_timeout, headers = !http_ajax_headers, engine_reset_queued_uri))
 
 end
 
 ######################
 ## POLL NEXT QUEUES ##
 ######################
+
+# get next queues
+def get_next_queues() =
+
+    # make a http request to the engine
+    engine_next_queues_response = http.get(timeout = !http_timeout, headers = !http_ajax_headers, engine_next_queues_uri)
+    engine_next_queues_response_data = snd(engine_next_queues_response)
+    next_queues_json = safe_json(engine_next_queues_response_data)
+    log('Queue: Unsafe JSON: #{engine_next_queues_response_data} Safe JSON: #{next_queues_json}')
+    # return next queues json parsed
+    of_json(default = [[('error', 'failure')]], next_queues_json)
+
+end
+
+# push queue
+def push_queue(queue) =
+
+    # push file name to server queue
+    ignore(server.execute("schedule.push #{queue['file_name']}"))
+    # log file queued
+    log("Queue: Added #{queue['file_name']}")
+
+end
 
 # poll next queues
 def poll_next_queues() =
@@ -59,8 +49,6 @@ def poll_next_queues() =
         ## NEXT QUEUES UPDATE ##
         ########################
 
-        # log file queued
-        log("Queue: Added #{first_next_queue['file_name']}")
         # append next queue to queues
         next_queues := list.append(the_next_queues, !next_queues)
         # push all new queues to the schedule
@@ -87,10 +75,15 @@ def poll_next_queues() =
 end
 
 ########################
-## PLAY SCHEDULE FILE ##
+## PLAY CURRENT QUEUE ##
 ########################
 
+# play schedule file
 def play_schedule_file() =
+
+    ###############################
+    ## NOTIFY SCHEDULE FILE PLAY ##
+    ###############################
 
     # get updated current queue
     the_current_queue = !current_queue
@@ -100,37 +93,50 @@ def play_schedule_file() =
     current_engine_play_schedule_file_uri
         = string.replace(pattern = '<schedule_file_id>', fun(s) -> the_current_queue['schedule_file_id'], engine_play_schedule_file_uri)
     # post metadata
-    ignore(http.get(timeout = !http_timeout, current_engine_play_schedule_file_uri))
+    current_engine_play_schedule_file_response = http.get(timeout = !http_timeout, headers = !http_ajax_headers, current_engine_play_schedule_file_uri)
+    current_engine_play_schedule_file_response_data = snd(current_engine_play_schedule_file_response)
 
-    ############################
-    ## PROCESS STREAM UPDATES ##
-    ############################
+    ##############################
+    ## PLAY RESPONSE VALIDATION ##
+    ##############################
 
-    # get current genre
-    current_genre = the_current_queue['file_genre']
+    # verify we got a success
+    if current_engine_play_schedule_file_response_data == 'SUCCESS' then
 
-    if
-        # do stream updates for non-sweeper/bumper/intro
-        (current_genre != 'Sweeper')
-        and (current_genre != 'Bumper')
-        and (current_genre != 'Intro')
-    then
+        ############################
+        ## PROCESS STREAM UPDATES ##
+        ############################
 
-        # process stream updates
-        save_stream_statistics()
-        update_stream_metadatas()
+        # get current genre
+        current_genre = the_current_queue['file_genre']
+
+        if
+            # do stream updates for non-promos
+            (current_genre != 'Sweeper')
+            and (current_genre != 'Bumper')
+            and (current_genre != 'Intro')
+            and (current_genre != 'Ad')
+        then
+
+            # process stream updates
+            save_stream_statistics()
+            update_stream_metadatas()
+
+        end
+
+        # don't loop
+        (-1.)
+
+    else
+
+        # http retry delay
+        !http_retry_delay
 
     end
 
-    # don't loop
-    (-1.)
-
 end
 
-########################
-## PLAY CURRENT QUEUE ##
-########################
-
+# play current queue
 def play_current_queue() =
 
     #############################
@@ -174,7 +180,7 @@ def play_current_queue() =
         # log schedule change
         log("Queue: Schedule Changed, Loading New Jingles")
         # load the promos for this schedule
-        add_timeout(fast = true, 0., load_jingles)
+        add_timeout(fast = true, 0., load_promos)
 
     end
 

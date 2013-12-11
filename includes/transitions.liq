@@ -12,18 +12,50 @@ input_fade_in = fun(s) -> fade.initial(type = "lin", duration = !input_transitio
 talkover_fade_out = fun(s) -> fade.final(type = "lin", duration = !talkover_transition_fade_seconds, s)
 talkover_fade_in = fun(s) -> fade.initial(type = "lin", duration = !talkover_transition_fade_seconds, s)
 
-######################
-## INPUT TRANSITION ##
-######################
+#######################
+## INPUT TRANSITIONS ##
+#######################
 
-def input_transition(a, b) =
+# intro
+def intro_input_transition(a, b) =
 
     # log transition
-    log("Transitions: Input")
-    # bring back the music with sweeper
+    log("Transitions: Intro Input")
+    # fade out music, start intro, start input
     add(normalize = false, [
-        input_fade_in(b),
-        input_fade_out(a)
+        sequence([
+            fade_out(a),
+            fallback(track_sensitive = false, [])
+        ]), sequence(merge = true, [
+            blank(duration = !transition_delay_seconds),
+            intros,
+            fallback(track_sensitive = false, [])
+        ]), sequence(merge = true, [
+            blank(duration = !transition_delay_seconds),
+            fade_in(b)
+        ])
+    ])
+
+end
+
+# closer
+def closer_input_transition(a, b) =
+
+    # log transition
+    log("Transitions: Closer Input")
+    # fade out music, start intro, start input
+    add(normalize = false, [
+        sequence([
+            fade_out(a),
+            fallback(track_sensitive = false, [])
+        ]), sequence(merge = true, [
+            blank(duration = !transition_delay_seconds),
+            once(closers),
+            fallback(track_sensitive = false, [])
+        ]), sequence(merge = true, [
+            blank(duration = !transition_delay_seconds),
+            fade_in(b)
+        ])
     ])
 
 end
@@ -55,11 +87,11 @@ def bumper_file_transition(file_a, file_b) =
     # finish the bumper while fading in b
     add(normalize = false, [
         sequence([
-            blank(duration = !transition_delay_seconds),
-            fade_in(file_b)
-        ]), sequence([
             file_a,
             fallback(track_sensitive = false, [])
+        ]), sequence(merge = true, [
+            blank(duration = !transition_delay_seconds),
+            fade_in(file_b)
         ])
     ])
 
@@ -76,11 +108,11 @@ def intro_file_transition(file_a, file_b) =
     # start intro, fading in music after a delay
     add(normalize = false, [
         sequence([
-            blank(duration = !transition_delay_seconds),
-            fade_in(file_b)
-        ]), sequence([
             file_a,
             fallback(track_sensitive = false, [])
+        ]), sequence(merge = true, [
+            blank(duration = !transition_delay_seconds),
+            fade_in(file_b)
         ])
     ])
 
@@ -92,17 +124,16 @@ end
 
 def file_sweeper_transition(file_a, file_b) =
 
-
     # log transition
     log("Transitions: File-Sweeper")
     # fade out file while starting sweeper
     add(normalize = false, [
         sequence([
-            blank(duration = !transition_delay_seconds),
-            file_b
-        ]), sequence([
             fade_out(file_a),
             fallback(track_sensitive = false, [])
+        ]), sequence(merge = true, [
+            blank(duration = !transition_delay_seconds),
+            file_b
         ])
     ])
 
@@ -119,12 +150,12 @@ def sweeper_file_transition(file_a, file_b) =
     # finish sweeper, fade in file
     add(normalize = false, [
         sequence([
-            blank(duration = !transition_delay_seconds),
-            fade_in(file_b)
-        ]), sequence([
             file_a,
             fallback(track_sensitive = false, [])
-        ]),
+        ]), sequence(merge = true, [
+            blank(duration = !transition_delay_seconds),
+            fade_in(file_b)
+        ])
     ])
 
 end
@@ -165,13 +196,16 @@ end
 ## TRANSITION TRIAGE ##
 #######################
 
-def transition(power_a, power_b, meta_a, meta_b, file_a, file_b)
+def transition(file_a, file_b)
 
-    # get genres
-    genre_a = meta_a['genre']
-    genre_b = meta_b['genre']
+    # get current and next queues
+    the_current_queue = !current_queue
+    the_next_queue = list.nth(!next_queues, 0)
+    # get current and next genres
+    genre_a = the_current_queue['file_genre']
+    genre_b = the_next_queue['file_genre']
     # log triage
-    log("Transititons: Triaging (#{genre_a}-#{genre_b})")
+    log("Transititons: Triaging (#{genre_a} -> #{genre_b})")
 
     ########################
     ## FILE-AD TRANSITION ##

@@ -27,7 +27,7 @@ radio := on_end(delay = !jingle_end_padding_seconds, track_end, !radio)
 #################
 
 # cross fading
-radio := smart_cross(duration = !transition_cross_seconds, inhibit = 1., conservative = true, transition, !radio)
+radio := cross(duration = !transition_cross_seconds, inhibit = 0., transition, !radio)
 # output radio to dummy
 output.dummy(fallible = true, !radio)
 
@@ -40,7 +40,7 @@ show_input = audio_to_stereo(
     input.harbor(
         id = "show_input",
         port = !show_input_port,
-        auth = authorize_show_user,
+        auth = authenticate_show,
         max = !input_buffer_seconds_max,
         on_connect = show_input_connect,
         on_disconnect = show_input_disconnect,
@@ -60,7 +60,7 @@ talkover_input = audio_to_stereo(
     input.harbor(
         id = "talkover_input",
         port = !talkover_input_port,
-        auth = authorize_talkover_user,
+        auth = authenticate_talkover,
         buffer = !input_buffer_seconds,
         max = !input_buffer_seconds_max,
         on_connect = talkover_input_connect,
@@ -101,7 +101,7 @@ master_input = audio_to_stereo(
     input.harbor(
         id = "master_input",
         port = !master_input_port,
-        auth = authorize_master_user,
+        auth = authenticate_master,
         max = !input_buffer_seconds_max,
         on_connect = master_input_connect,
         on_disconnect = master_input_disconnect,
@@ -111,46 +111,6 @@ master_input = audio_to_stereo(
 
 # dummy output to reduce input latency
 output.dummy(fallible = true, master_input)
-
-#############
-## JINGLES ##
-#############
-
-# add jingles end function
-jingles = on_end(delay = 0., jingle_end, jingles)
-# quiet detection
-radio := on_blank(
-    track_sensitive = false,
-    threshold = !jingle_quiet_threshold,
-    max_blank = !jingle_quiet_seconds,
-    min_noise = !jingle_noise_seconds,
-    on_noise = quiet_off,
-    quiet_on,
-    !radio
-)
-
-# mix in jingles when:
-# - are available
-# - detect quiet
-# - are in the meat of a song
-# - have not occurred in a while (ready)
-# - are not playing ads
-# - and we don't have (talkover input & enabled)
-radio := add(normalize = false, [
-    !radio,
-    switch(
-        id = 'jingles_switch', [(
-        {
-            !jingles_available
-            and !quiet_detected
-            and !track_meat
-            and !jingles_ready
-            and not !restricted_playing
-            and not (!talkover_input_status and !talkover_input_enabled)
-        },
-        jingles
-    )])
-])
 
 ##########################
 ## HOOK INPUTS TOGETHER ##
@@ -172,7 +132,7 @@ radio :=  switch(
 radio :=  switch(
     id = 'show_switch',
     track_sensitive = false,
-    transitions = [ input_transition, input_transition ],
+    transitions = [ intro_input_transition, closer_input_transition ],
     [
         ({ !show_input_status and !show_input_enabled }, show_input),
         ({ true }, !radio)
@@ -198,12 +158,55 @@ radio := switch(
 radio := switch(
     id = 'master_switch',
     track_sensitive = false,
-    transitions = [ input_transition, input_transition ],
+    transitions = [ intro_input_transition, closer_input_transition ],
     [
         ({ !master_input_status and !master_input_enabled }, master_input),
         ({ true }, !radio)
     ]
 )
+
+#############
+## JINGLES ##
+#############
+
+# add jingles end function
+jingles = on_end(delay = 0., jingle_end, jingles)
+# quiet detection
+radio := on_blank(
+    track_sensitive = false,
+    threshold = !jingle_quiet_threshold,
+    max_blank = !jingle_quiet_seconds,
+    min_noise = !jingle_noise_seconds,
+    on_noise = quiet_off,
+    quiet_on,
+    !radio
+)
+
+# mix in jingles when:
+# - detect quiet
+# - are in the meat of a song
+# - have not occurred in a while (ready)
+# - are not playing ads
+# - and we don't have (talkover input & enabled)
+radio := add(normalize = false, [
+    !radio,
+    switch(
+        id = 'jingles_switch', [(
+        {
+            # always required
+            !quiet_detected
+            and !jingles_ready
+            and not (!talkover_input_status and !talkover_input_enabled)
+            and (
+                # show/master input requirements
+                ((!show_input_status and !show_input_enabled) or (!master_input_status and !master_input_enabled))
+                # schedule input requirements
+                or (!track_meat and not !restricted_playing)
+            )
+        },
+        jingles
+    )])
+])
 
 #############
 ## OUTPUTS ##
