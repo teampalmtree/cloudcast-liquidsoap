@@ -198,91 +198,110 @@ end
 
 def transition(file_a, file_b)
 
-    # get current and next queues
-    the_current_queue = !current_queue
-    the_next_queue = list.nth(!next_queues, 0)
-    # get current and next genres
-    genre_a = the_current_queue['file_genre']
-    genre_b = the_next_queue['file_genre']
-    # log triage
-    log("Transititons: Triaging (#{genre_a} -> #{genre_b})")
+    # if we have a next queue, get it as well
+    if list.length(!next_queues) > 0 then
 
-    ########################
-    ## FILE-AD TRANSITION ##
-    ########################
+        ##############################
+        ## GET CURRENT & NEXT GENRE ##
+        ##############################
 
-    if (genre_b == 'Ad') then
-        file_file_transition(file_a, file_b)
+        # get current queue
+        the_current_queue = !current_queue
+        # get current genre
+        genre_a = the_current_queue['file_genre']
+        # get the next queue
+        the_next_queue = list.nth(!next_queues, 0)
+        # get the next genre
+        genre_b = the_next_queue['file_genre']
 
-    ########################
-    ## AD-FILE TRANSITION ##
-    ########################
+        # log triage
+        log("Transititons: Triaging (#{genre_a} -> #{genre_b})")
 
-    elsif (genre_a == 'Ad') and (genre_b != 'Bumper') then
-        file_file_transition(file_a, file_b)
+        ########################
+        ## FILE-AD TRANSITION ##
+        ########################
 
-    ############################
-    ## FILE-BUMPER TRANSITION ##
-    ############################
+        if (genre_b == 'Ad') then
+            file_file_transition(file_a, file_b)
 
-    elsif (genre_b == 'Bumper') then
-        file_file_transition(file_a, file_b)
+        ########################
+        ## AD-FILE TRANSITION ##
+        ########################
 
-    ############################
-    ## BUMPER-FILE TRANSITION ##
-    ############################
+        elsif (genre_a == 'Ad') and (genre_b != 'Bumper') then
+            file_file_transition(file_a, file_b)
 
-    elsif (genre_a == 'Bumper') and (genre_b != 'Intro') then
-        bumper_file_transition(file_a, file_b)
+        ############################
+        ## FILE-BUMPER TRANSITION ##
+        ############################
 
-    ###########################
-    ## FILE-INTRO TRANSITION ##
-    ###########################
+        elsif (genre_b == 'Bumper') then
+            file_file_transition(file_a, file_b)
 
-    elsif (genre_b == 'Intro') then
-        file_file_transition(file_a, file_b)
+        ############################
+        ## BUMPER-FILE TRANSITION ##
+        ############################
 
-    ############################
-    ## INTRO-FILE TRANSITIONS ##
-    ############################
+        elsif (genre_a == 'Bumper') and (genre_b != 'Intro') then
+            bumper_file_transition(file_a, file_b)
 
-    elsif (genre_a == 'Intro') then
-        intro_file_transition(file_a, file_b)
+        ###########################
+        ## FILE-INTRO TRANSITION ##
+        ###########################
 
-    #########################
-    ## FILE-SET TRANSITION ##
-    #########################
+        elsif (genre_b == 'Intro') then
+            file_file_transition(file_a, file_b)
 
-    elsif (genre_b == 'Set') then
-        file_file_transition(file_a, file_b)
+        ############################
+        ## INTRO-FILE TRANSITIONS ##
+        ############################
 
-    #########################
-    ## SET-FILE TRANSITION ##
-    #########################
+        elsif (genre_a == 'Intro') then
+            intro_file_transition(file_a, file_b)
 
-    elsif (genre_a == 'Set') then
-        file_file_transition(file_a, file_b)
+        #########################
+        ## FILE-SET TRANSITION ##
+        #########################
 
-    #############################
-    ## FILE-SWEEPER TRANSITION ##
-    #############################
+        elsif (genre_b == 'Set') then
+            file_file_transition(file_a, file_b)
 
-    elsif (genre_b == 'Sweeper') then
-        file_sweeper_transition(file_a, file_b)
+        #########################
+        ## SET-FILE TRANSITION ##
+        #########################
 
-    #############################
-    ## SWEEPER-FILE TRANSITION ##
-    #############################
+        elsif (genre_a == 'Set') then
+            file_file_transition(file_a, file_b)
 
-    elsif (genre_a == 'Sweeper') then
-        sweeper_file_transition(file_a, file_b)
+        #############################
+        ## FILE-SWEEPER TRANSITION ##
+        #############################
 
-    ##################################
-    ## CROSSED FILE-FILE TRANSITION ##
-    ##################################
+        elsif (genre_b == 'Sweeper') then
+            file_sweeper_transition(file_a, file_b)
+
+        #############################
+        ## SWEEPER-FILE TRANSITION ##
+        #############################
+
+        elsif (genre_a == 'Sweeper') then
+            sweeper_file_transition(file_a, file_b)
+
+        ##################################
+        ## CROSSED FILE-FILE TRANSITION ##
+        ##################################
+
+        else
+            crossed_file_file_transition(file_a, file_b)
+
+        end
 
     else
-        crossed_file_file_transition(file_a, file_b)
+
+        # log out of queue
+        log("Transititons: Out of Queue")
+        # we are out of queue, no transition
+        file_file_transition(file_a, file_b)
 
     end
 

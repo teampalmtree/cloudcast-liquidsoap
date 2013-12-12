@@ -27,7 +27,7 @@ radio := on_end(delay = !jingle_end_padding_seconds, track_end, !radio)
 #################
 
 # cross fading
-radio := cross(duration = !transition_cross_seconds, inhibit = 0., transition, !radio)
+radio := cross(duration = !transition_cross_seconds, inhibit = 0.1, transition, !radio)
 # output radio to dummy
 output.dummy(fallible = true, !radio)
 
