@@ -3,7 +3,7 @@
 #############
 
 # http settings
-http_timeout = ref 5.
+http_timeout = ref 10.
 http_retry_delay = ref 5.
 http_ajax_headers = ref [('X-Requested-With', 'XMLHttpRequest')]
 
