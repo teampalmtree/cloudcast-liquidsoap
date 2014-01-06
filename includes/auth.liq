@@ -36,7 +36,8 @@ end
 
 # show user
 def authenticate_show(username, password) =
-    authenticate(username, password, 'show')
+    #authenticate(username, password, 'show')
+    true
 end
 
 # talkover user
