@@ -86,7 +86,7 @@ def bumper_file_transition(file_a, file_b) =
     log("Transitions: Bumper-File")
     # finish the bumper while fading in b
     add(normalize = false, [
-        sequence([
+        sequence(merge = true, [
             file_a,
             fallback(track_sensitive = false, [])
         ]), sequence(merge = true, [
